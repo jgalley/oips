@@ -94,6 +94,22 @@ export function cell(benefit) {
   return parts.filter(Boolean).join('; ');
 }
 
+// Publisher text must not break the table or inject markup into rendered Markdown.
+const escape = (c) => String(c)
+  .replace(/[\r\n]+/g, ' ')
+  .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+  .replaceAll('|', '\\|');
+
+// One row per fee any of the products charges, so no fee is hidden by omission.
+function feeRows(products) {
+  const label = (f) => (f.code === 'other' ? text(f.label) || 'other fee' : words(f.code));
+  const labels = [...new Set(products.flatMap((p) => (p.fees ?? []).map(label)))];
+  return labels.map((l) => [`Fee: ${l}`, ...products.map((p) => {
+    const found = (p.fees ?? []).filter((f) => label(f) === l);
+    return found.length ? found.map((f) => money(f.amount)).join('; ') : 'Not stated';
+  })]);
+}
+
 const terms = (list) => (list ?? []).map((t) => (t.code && t.code !== 'other' ? words(t.code) : text(t.summary))).join('; ') || 'None stated';
 
 export function compare(products) {
@@ -103,18 +119,16 @@ export function compare(products) {
     ['Cover level', ...products.map((p) => words(p.motor?.coverLevel))],
     ['Write-off settlement', ...products.map((p) => words(p.motor?.writeOffSettlement) || 'Not stated')],
     ['Compulsory excess', ...products.map((p) => excessesOf(p, 'compulsory'))],
+    ['Voluntary excess', ...products.map((p) => excessesOf(p, 'voluntary'))],
     ['Additional excesses', ...products.map((p) => excessesOf(p, 'additional'))],
     ['Additional excesses combine', ...products.map((p) => words(p.excessStacking))],
     ...VOCABULARY.map((code) => [words(code), ...products.map((p) => cell(p.benefits.find((b) => b.code === code)))]),
     ['General exclusions', ...products.map((p) => terms(p.exclusions))],
     ['Conditions', ...products.map((p) => terms(p.conditions))],
-    ['Cancellation fee after cooling off', ...products.map((p) => {
-      const fee = p.fees?.find((f) => f.code === 'cancellation_after_cooling_off');
-      return fee ? money(fee.amount) : 'Not stated';
-    })],
+    ...feeRows(products),
     ['Refund after cooling off', ...products.map((p) => words(p.cancellation.refundBasisAfterCoolingOff) || 'Not stated')],
   ];
-  const line = (r) => `| ${r.map((c) => String(c).replaceAll('|', '\\|')).join(' | ')} |`;
+  const line = (r) => `| ${r.map(escape).join(' | ')} |`;
   return [line(header), line(header.map(() => '---')), ...rows.map(line)].join('\n');
 }
 

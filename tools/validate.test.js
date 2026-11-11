@@ -230,3 +230,23 @@ test('schema applies the product id pattern to quotes and index entries', () => 
   i.products[0].id = 'Not An Id';
   assert.equal(index(i), false);
 });
+
+test('comparison shows voluntary excesses and every fee any product charges', () => {
+  const a = alder();
+  a.excesses.push({ type: 'voluntary', amount: { amount: '150', currency: 'GBP' } });
+  const b = birch();
+  b.fees.push({ code: 'other', label: 'Renewal admin', amount: { amount: '12', currency: 'GBP' } });
+  const table = compare([a, b]);
+  assert.match(table, /\| Voluntary excess \| voluntary £150 \| None stated \|/);
+  assert.match(table, /\| Fee: missed payment \| Not stated \| £25 \|/);
+  assert.match(table, /\| Fee: Renewal admin \| Not stated \| £12 \|/);
+});
+
+test('comparison keeps publisher text from breaking the table or adding markup', () => {
+  const a = alder();
+  a.name = 'Alder\n| injected | row |\n<script>x</script>';
+  const [header] = compare([a, birch()]).split('\n');
+  assert.equal(header.split(/(?<!\\)\|/).length, 5);
+  assert.ok(!header.includes('<script>'));
+  assert.match(header, /&lt;script&gt;/);
+});
