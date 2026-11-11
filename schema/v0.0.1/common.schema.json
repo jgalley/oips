@@ -127,7 +127,7 @@
           "required": ["value", "unit"],
           "additionalProperties": false,
           "properties": {
-            "value": { "type": "number", "minimum": 0 },
+            "value": { "type": "number", "exclusiveMinimum": 0 },
             "unit": { "type": "string", "enum": ["days", "claims", "journeys", "items", "miles", "km"] }
           }
         },

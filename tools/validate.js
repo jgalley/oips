@@ -104,6 +104,9 @@ export function semanticErrors(doc) {
     const d = doc.motor?.drivers;
     if (d?.minAge != null && d?.maxAge != null && d.minAge > d.maxAge) errors.push('motor.drivers.minAge is above maxAge');
     doc.benefits.forEach((b) => {
+      if (b.availability === 'included' && (b.limits ?? []).some((l) => l.amount && toUnits(l.amount.amount) === 0n)) {
+        errors.push(`benefit "${b.code}" is included with a limit of zero; mark it not_included instead`);
+      }
       const tierIds = new Set();
       (b.optionalExtra?.tiers ?? []).forEach((t) => {
         if (tierIds.has(t.id)) errors.push(`benefit "${b.code}" tier "${t.id}" appears more than once`);

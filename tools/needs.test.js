@@ -177,3 +177,22 @@ test('needs pricing caps bundles and skips bundles that meet no need', () => {
   assert.equal(product(p), true);
   assert.equal(quote(q), true);
 });
+
+test('needs results show the accidental damage excess beside the price', () => {
+  const a = priceForNeeds(needs, alder(), load('alder/quote.json'));
+  const b = priceForNeeds(needs, birch(), load('birch/quote.json'));
+  assert.equal(b.excess.amount, '500.00');
+  assert.match(report([a, b]), /accidental damage excess £500\.00/);
+});
+
+test('validator rejects an included benefit with a zero limit', () => {
+  const d = alder();
+  const b = d.benefits.find((x) => x.availability === 'included');
+  b.limits = [{ amount: { amount: '0', currency: 'GBP' }, basis: 'per_claim' }];
+  assert.match(semanticErrors(d).errors.join('\n'), /included with a limit of zero/);
+  const u = alder();
+  u.benefits.find((x) => x.availability === 'included').limits = [{ units: { value: 0, unit: 'days' }, basis: 'per_claim' }];
+  assert.equal(product(u), false);
+  u.benefits.find((x) => x.availability === 'included').limits[0].units.value = 1;
+  assert.equal(product(u), true, JSON.stringify(product.errors));
+});

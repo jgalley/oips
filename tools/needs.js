@@ -105,9 +105,16 @@ export function priceForNeeds(rawNeeds, product, quote) {
     if (better) best = { picks, unmet, total };
   }
 
+  // The fixed excess on an accidental damage claim: compulsory plus voluntary, before any
+  // circumstance-specific additional excess. Shown beside the price so a higher excess cannot hide.
+  const excess = (quote.excesses ?? [])
+    .filter((e) => (e.type === 'compulsory' || e.type === 'voluntary') && (!e.appliesTo || e.appliesTo.includes('accidental_damage')))
+    .reduce((sum, e) => sum + toUnits(e.amount.amount), 0n);
+
   return {
     product: product.id,
     headline: quote.premium.annual,
+    excess: fromUnits(excess, currency),
     base: fromUnits(base, currency),
     included: included.map((n) => n.code),
     extras: best.picks.map((p) => ({ item: p.label, price: fromUnits(p.cost, currency) })),
@@ -126,7 +133,7 @@ export function report(results) {
   const ranked = [...results].sort((a, b) => a.unmet.length - b.unmet.length || byTotal(a, b));
   return ranked.map((r, i) => [
     `${i + 1}. ${r.product}: ${r.unmet.length ? 'does not meet every need' : money(r.total)}`,
-    `   headline ${money(r.headline)}, without extras ${money(r.base)}`,
+    `   headline ${money(r.headline)}, without extras ${money(r.base)}, accidental damage excess ${money(r.excess)}`,
     ...(r.included.length ? [`   already included: ${r.included.join(', ')}`] : []),
     ...r.extras.map((e) => `   + ${e.item} ${money(e.price)}`),
     ...(r.unmet.length ? [`   not available: ${r.unmet.join('; ')}`] : []),
