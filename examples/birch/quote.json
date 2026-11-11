@@ -1,0 +1,50 @@
+{
+  "$schema": "../../schema/v0.0.1/quote.schema.json",
+  "oips": "0.0.1",
+  "documentType": "quote",
+  "reference": "BIR-7731-0042",
+  "lineOfBusiness": "motor.private_car",
+  "issuedAt": "2026-11-11T09:41:00Z",
+  "validUntil": "2026-12-11T23:59:59Z",
+  "product": {
+    "id": "example.birch.motor.essentials",
+    "version": "1.4.0",
+    "url": "https://birch.example/oips/motor/essentials/1.4.0.json",
+    "sha256": "121b45556d6d8ab10f883ffc6a94fdd9375b16c9317310099259738383fd7568"
+  },
+  "seller": { "name": "Example Compare Ltd (fictional)", "regulator": { "authority": "FCA", "reference": "000004" } },
+  "sellerRemuneration": [
+    { "type": "commission", "paidBy": "insurer", "amount": { "amount": "62.00", "currency": "GBP" } }
+  ],
+  "cover": { "startDate": "2026-12-01", "endDate": "2027-11-30", "autoRenews": true },
+  "premium": {
+    "annual": { "amount": "529.00", "currency": "GBP" },
+    "taxIncluded": true,
+    "tax": { "amount": "56.68", "currency": "GBP" }
+  },
+  "excesses": [
+    { "type": "compulsory", "amount": { "amount": "350", "currency": "GBP" }, "appliesTo": ["accidental_damage", "fire", "theft"] },
+    { "type": "voluntary", "amount": { "amount": "150", "currency": "GBP" }, "appliesTo": ["accidental_damage", "fire", "theft"] },
+    { "type": "additional", "amount": { "amount": "400", "currency": "GBP" }, "conditionCode": "driver_under_25", "drivers": ["d2"], "appliesTo": ["accidental_damage"] }
+  ],
+  "optionalExtras": [
+    { "code": "courtesy_car", "price": { "amount": "24.99", "currency": "GBP" }, "selected": false },
+    { "code": "key_replacement", "price": { "amount": "12.99", "currency": "GBP" }, "selected": false },
+    { "code": "ncd_protection", "price": { "amount": "41.20", "currency": "GBP" }, "selected": false },
+    { "code": "breakdown_assistance", "tier": "essential", "price": { "amount": "54.99", "currency": "GBP" }, "selected": false },
+    { "code": "breakdown_assistance", "tier": "complete", "price": { "amount": "149.99", "currency": "GBP" }, "selected": false },
+    { "code": "tyre_alloy_wheel", "price": { "amount": "39.99", "currency": "GBP" }, "selected": false }
+  ],
+  "risk": {
+    "motor": {
+      "vehicle": { "make": "Kia", "model": "Niro EV", "yearOfManufacture": 2023, "fuel": "electric", "declaredValue": { "amount": "21500", "currency": "GBP" }, "modified": false, "overnightLocation": "garage" },
+      "use": "commuting",
+      "annualMileage": 8000,
+      "noClaimsYears": 7,
+      "drivers": [
+        { "ref": "d1", "role": "main", "ageBand": "40-49", "licenceType": "full_uk", "licenceHeldBand": "10+" },
+        { "ref": "d2", "role": "named", "ageBand": "21-24", "licenceType": "full_uk", "licenceHeldBand": "3-4" }
+      ]
+    }
+  }
+}

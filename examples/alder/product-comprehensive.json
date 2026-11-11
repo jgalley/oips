@@ -1,0 +1,143 @@
+{
+  "$schema": "../../schema/v0.0.1/product.schema.json",
+  "oips": "0.0.1",
+  "documentType": "product",
+  "id": "example.alder.motor.comprehensive",
+  "version": "3.1.0",
+  "lineOfBusiness": "motor.private_car",
+  "jurisdiction": "GB",
+  "language": "en-GB",
+  "name": "Alder Comprehensive Car Insurance",
+  "tier": "Standard",
+  "summary": "Fictional example product. Comprehensive cover with a courtesy car from approved repairers.",
+  "publishedAt": "2026-10-01T09:00:00Z",
+  "effective": { "from": "2026-10-01", "to": null },
+  "insurer": {
+    "name": "Alder Insurance Ltd (fictional)",
+    "regulator": { "authority": "FCA", "reference": "000001" },
+    "website": "https://alder.example"
+  },
+  "documents": [
+    { "id": "wording", "type": "policy_wording", "title": "Car Insurance Policy Wording", "url": "https://alder.example/docs/motor-wording-3.1.pdf", "mediaType": "application/pdf", "version": "3.1" },
+    { "id": "ipid", "type": "ipid", "url": "https://alder.example/docs/motor-ipid-3.1.pdf", "mediaType": "application/pdf" },
+    { "id": "legal", "type": "add_on_wording", "title": "Motor Legal Expenses", "url": "https://alder.example/docs/motor-legal-2.0.pdf", "mediaType": "application/pdf" }
+  ],
+  "benefits": [
+    { "code": "third_party_injury", "availability": "included", "limits": [{ "basis": "per_incident", "unlimited": true }], "clauses": [{ "document": "wording", "section": "1.1", "page": 8 }] },
+    { "code": "third_party_property", "availability": "included", "limits": [{ "basis": "per_incident", "amount": { "amount": "20000000", "currency": "GBP" } }], "clauses": [{ "document": "wording", "section": "1.2", "page": 8 }] },
+    { "code": "fire", "availability": "included", "limits": [{ "basis": "per_claim", "marketValue": true }], "clauses": [{ "document": "wording", "section": "3", "page": 11 }] },
+    {
+      "code": "theft", "availability": "included", "limits": [{ "basis": "per_claim", "marketValue": true }],
+      "exclusions": [
+        { "id": "theft-keys", "code": "keys_left_in_car", "summary": "No cover if the keys were left in or on the car.", "clauses": [{ "document": "wording", "section": "3.4(a)", "page": 12 }] },
+        { "id": "theft-unlocked", "code": "car_left_unlocked", "summary": "No cover if the car was left unlocked.", "clauses": [{ "document": "wording", "section": "3.4(b)", "page": 12 }] }
+      ],
+      "clauses": [{ "document": "wording", "section": "3", "page": 11 }]
+    },
+    { "code": "accidental_damage", "availability": "included", "limits": [{ "basis": "per_claim", "marketValue": true }], "clauses": [{ "document": "wording", "section": "4", "page": 13 }] },
+    {
+      "code": "windscreen_glass", "availability": "included", "summary": "Windscreen and window repair or replacement. No effect on no claims discount.",
+      "excesses": [
+        { "type": "compulsory", "amount": { "amount": "25", "currency": "GBP" }, "conditionCode": "glass_repair", "condition": "Repair", "appliesTo": ["windscreen_glass"] },
+        { "type": "compulsory", "amount": { "amount": "100", "currency": "GBP" }, "conditionCode": "glass_replacement", "condition": "Replacement", "appliesTo": ["windscreen_glass"] }
+      ],
+      "clauses": [{ "document": "wording", "section": "5", "page": 15 }]
+    },
+    {
+      "code": "courtesy_car", "availability": "included", "summary": "Small hatchback while your car is repaired by our approved repairer.", "vehicleClass": "small_car", "guaranteed": true,
+      "providedWhen": ["approved_repairer_used", "car_repairable"],
+      "clauses": [{ "document": "wording", "section": "4.6", "page": 14 }]
+    },
+    {
+      "code": "hire_car_enhanced", "availability": "optional_extra",
+      "optionalExtra": { "indicativePrice": { "amount": "29.99", "currency": "GBP" } },
+      "limits": [{ "basis": "per_claim", "units": { "value": 21, "unit": "days" } }],
+      "summary": "Like-for-like hire car for up to 21 days, including after theft or write-off."
+    },
+    { "code": "new_car_replacement", "availability": "included", "providedWhen": ["within_qualifying_period", "first_owner"], "qualifyingPeriod": "P12M", "clauses": [{ "document": "wording", "section": "4.8", "page": 14 }] },
+    { "code": "personal_accident", "availability": "included", "limits": [{ "basis": "per_person", "amount": { "amount": "5000", "currency": "GBP" } }], "providedWhen": ["policyholder_only"], "clauses": [{ "document": "wording", "section": "6", "page": 16 }] },
+    { "code": "medical_expenses", "availability": "included", "limits": [{ "basis": "per_person", "amount": { "amount": "250", "currency": "GBP" } }], "clauses": [{ "document": "wording", "section": "7", "page": 16 }] },
+    { "code": "personal_belongings", "availability": "included", "limits": [{ "basis": "per_incident", "amount": { "amount": "150", "currency": "GBP" } }], "clauses": [{ "document": "wording", "section": "8", "page": 17 }] },
+    { "code": "in_car_entertainment", "availability": "included", "limits": [{ "basis": "per_incident", "amount": { "amount": "500", "currency": "GBP" } }], "clauses": [{ "document": "wording", "section": "9", "page": 17 }] },
+    { "code": "child_seats", "availability": "included", "clauses": [{ "document": "wording", "section": "4.9", "page": 14 }] },
+    { "code": "key_replacement", "availability": "optional_extra", "optionalExtra": { "indicativePrice": { "amount": "14.99", "currency": "GBP" } }, "limits": [{ "basis": "per_policy_year", "amount": { "amount": "1500", "currency": "GBP" } }] },
+    { "code": "misfuelling", "availability": "not_included" },
+    { "code": "ev_battery", "availability": "included", "limits": [{ "basis": "per_claim", "marketValue": true }], "clauses": [{ "document": "wording", "section": "4.10", "page": 14 }] },
+    { "code": "ev_charging_equipment", "availability": "included", "limits": [{ "basis": "per_incident", "amount": { "amount": "1000", "currency": "GBP" } }], "clauses": [{ "document": "wording", "section": "4.11", "page": 15 }] },
+    { "code": "driving_other_cars", "availability": "included", "coverBasis": "third_party_only", "providedWhen": ["policyholder_only", "owner_has_own_policy"], "territories": ["GB"], "clauses": [{ "document": "wording", "section": "1.5", "page": 9 }] },
+    { "code": "european_cover", "availability": "included", "coverBasis": "full_policy_cover", "territories": ["EEA", "CH"], "limits": [{ "basis": "per_policy_year", "units": { "value": 90, "unit": "days" } }], "clauses": [{ "document": "wording", "section": "10", "page": 18 }] },
+    { "code": "uninsured_driver", "availability": "included", "providedWhen": ["non_fault_claim", "third_party_identified"], "clauses": [{ "document": "wording", "section": "4.12", "page": 15 }] },
+    { "code": "vandalism", "availability": "included", "clauses": [{ "document": "wording", "section": "4.13", "page": 15 }] },
+    { "code": "guaranteed_repairs", "availability": "included", "providedWhen": ["approved_repairer_used"], "limits": [{ "basis": "per_claim", "maxDuration": "P5Y", "unlimited": true }], "clauses": [{ "document": "wording", "section": "4.7", "page": 14 }] },
+    { "code": "ncd_protection", "availability": "optional_extra", "optionalExtra": { "indicativePrice": { "amount": "45.00", "currency": "GBP" } }, "limits": [{ "basis": "aggregate", "units": { "value": 2, "unit": "claims" }, "maxDuration": "P3Y", "label": "Two claims in three years" }] },
+    {
+      "code": "breakdown_assistance", "availability": "optional_extra",
+      "optionalExtra": {
+        "tiers": [
+          { "id": "roadside", "name": "Roadside", "features": ["roadside_assistance"], "indicativePrice": { "amount": "39.99", "currency": "GBP" } },
+          { "id": "national", "name": "Roadside and National Recovery", "features": ["roadside_assistance", "national_recovery"], "indicativePrice": { "amount": "69.99", "currency": "GBP" } },
+          { "id": "national-home", "name": "Complete", "features": ["roadside_assistance", "national_recovery", "home_start", "onward_travel"], "indicativePrice": { "amount": "79.99", "currency": "GBP" } },
+          { "id": "european", "name": "Complete with Europe", "features": ["roadside_assistance", "national_recovery", "home_start", "onward_travel", "european_breakdown"], "indicativePrice": { "amount": "119.99", "currency": "GBP" } }
+        ]
+      },
+      "provider": { "name": "Example Breakdown Services (fictional)" }
+    },
+    {
+      "code": "motor_legal_expenses", "availability": "optional_extra",
+      "optionalExtra": { "indicativePrice": { "amount": "24.99", "currency": "GBP" } },
+      "limits": [{ "basis": "per_claim", "amount": { "amount": "100000", "currency": "GBP" } }],
+      "clauses": [{ "document": "legal", "section": "2", "page": 3 }]
+    },
+    { "code": "trailer_caravan_liability", "availability": "included", "coverBasis": "third_party_only", "clauses": [{ "document": "wording", "section": "1.6", "page": 9 }] },
+    { "code": "emergency_travel_accommodation", "availability": "not_stated" },
+    { "code": "excess_protection", "availability": "optional_extra", "optionalExtra": { "indicativePrice": { "amount": "19.99", "currency": "GBP" } }, "limits": [{ "basis": "per_claim", "amount": { "amount": "500", "currency": "GBP" } }] },
+    { "code": "gap_insurance", "availability": "not_included" },
+    { "code": "tyre_alloy_wheel", "availability": "not_included" },
+    { "code": "scratch_dent", "availability": "not_stated" }
+  ],
+  "bundles": [
+    { "id": "plus-pack", "name": "Plus Pack", "contains": [{ "code": "motor_legal_expenses" }, { "code": "breakdown_assistance", "tier": "national" }, { "code": "key_replacement" }], "indicativePrice": { "amount": "89.99", "currency": "GBP" } }
+  ],
+  "excessStacking": "cumulative",
+  "excesses": [
+    { "type": "compulsory", "amount": { "amount": "250", "currency": "GBP" }, "appliesTo": ["accidental_damage", "fire", "theft"], "clauses": [{ "document": "wording", "section": "Schedule" }] },
+    { "type": "additional", "amount": { "amount": "250", "currency": "GBP" }, "conditionCode": "driver_under_25", "condition": "Driver aged under 25 at the time of the incident.", "appliesTo": ["accidental_damage"] },
+    { "type": "additional", "amount": { "amount": "250", "currency": "GBP" }, "conditionCode": "non_approved_repairer", "condition": "You choose not to use our approved repairer." }
+  ],
+  "exclusions": [
+    { "id": "racing", "code": "racing_track_days", "summary": "No cover for racing, rallies or track days.", "clauses": [{ "document": "wording", "section": "General exclusions 3", "page": 22 }] },
+    { "id": "influence", "code": "under_influence", "summary": "No cover if the driver is over the drink or drug driving limit, other than the legal minimum to third parties.", "clauses": [{ "document": "wording", "section": "General exclusions 5", "page": 22 }] },
+    { "id": "delivery", "code": "ride_hailing_delivery", "summary": "No cover for paid passenger or food delivery use.", "clauses": [{ "document": "wording", "section": "General exclusions 7", "page": 23 }] },
+    { "id": "wear", "code": "wear_and_tear", "summary": "No cover for breakdown, wear and tear or depreciation." }
+  ],
+  "conditions": [
+    { "id": "report-claims", "code": "report_incident_promptly", "summary": "Tell us about any incident within 48 hours, even if you do not intend to claim.", "clauses": [{ "document": "wording", "section": "General conditions 2", "page": 24 }] },
+    { "id": "maintain-car", "code": "keep_roadworthy", "summary": "Keep the car roadworthy with a valid MOT.", "clauses": [{ "document": "wording", "section": "General conditions 4", "page": 24 }] }
+  ],
+  "fees": [
+    { "code": "mid_term_adjustment", "amount": { "amount": "25", "currency": "GBP" } },
+    { "code": "cancellation_in_cooling_off", "amount": { "amount": "0", "currency": "GBP" } },
+    { "code": "cancellation_after_cooling_off", "amount": { "amount": "45", "currency": "GBP" } }
+  ],
+  "cancellation": {
+    "coolingOffPeriod": "P14D",
+    "refundBasisAfterCoolingOff": "pro_rata",
+    "refundIfClaimMade": false,
+    "clauses": [{ "document": "wording", "section": "General conditions 9", "page": 26 }]
+  },
+  "claims": { "phone": "0800 000 0000", "url": "https://alder.example/claims", "available24x7": true },
+  "complaints": {
+    "url": "https://alder.example/complaints",
+    "ombudsman": { "name": "Financial Ombudsman Service", "url": "https://www.financial-ombudsman.org.uk" }
+  },
+  "compensationScheme": { "name": "Financial Services Compensation Scheme", "url": "https://www.fscs.org.uk", "coverPercent": 100 },
+  "motor": {
+    "coverLevel": "comprehensive",
+    "vehicleUseOffered": ["social_domestic_pleasure", "commuting", "business_policyholder"],
+    "drivers": { "maxNamedDrivers": 4, "anyDriverOption": false, "minAge": 17, "maxAge": 85, "learnerDriversCovered": false },
+    "noClaimsDiscount": { "maxYearsRecognised": 15, "protectionOffered": true, "stepBackSummary": "Without protection, one claim reduces 5+ years to 3 years." },
+    "telematics": "none",
+    "writeOffSettlement": "market_value",
+    "repairParts": "manufacturer_or_equivalent"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "$schema": "../../schema/v0.0.1/quote.schema.json",
+  "oips": "0.0.1",
+  "documentType": "quote",
+  "reference": "ALD-Q-0001234",
+  "lineOfBusiness": "motor.private_car",
+  "issuedAt": "2026-11-11T09:30:00Z",
+  "validUntil": "2026-12-11T23:59:59Z",
+  "product": {
+    "id": "example.alder.motor.comprehensive",
+    "version": "3.1.0",
+    "url": "https://alder.example/oips/motor/comprehensive/3.1.0.json",
+    "sha256": "a701a892a8122445de0604dca0b3d62aa46f4acbc1e135f512f18705a8d06294"
+  },
+  "seller": { "name": "Example Compare Ltd (fictional)", "regulator": { "authority": "FCA", "reference": "000004" } },
+  "sellerRemuneration": [
+    { "type": "commission", "paidBy": "insurer", "amount": { "amount": "55.00", "currency": "GBP" } },
+    { "type": "add_on_commission", "paidBy": "insurer", "percentOfPremium": "30", "appliesTo": ["motor_legal_expenses"] }
+  ],
+  "cover": { "startDate": "2026-12-01", "endDate": "2027-11-30", "autoRenews": true },
+  "premium": {
+    "annual": { "amount": "612.48", "currency": "GBP" },
+    "taxIncluded": true,
+    "tax": { "amount": "65.62", "currency": "GBP" },
+    "instalments": {
+      "deposit": { "amount": "61.25", "currency": "GBP" },
+      "count": 10,
+      "amount": { "amount": "60.86", "currency": "GBP" },
+      "frequency": "monthly",
+      "totalPayable": { "amount": "669.85", "currency": "GBP" },
+      "apr": "21.9"
+    }
+  },
+  "excesses": [
+    { "type": "compulsory", "amount": { "amount": "250", "currency": "GBP" }, "appliesTo": ["accidental_damage", "fire", "theft"] },
+    { "type": "voluntary", "amount": { "amount": "250", "currency": "GBP" }, "appliesTo": ["accidental_damage", "fire", "theft"] },
+    { "type": "additional", "amount": { "amount": "250", "currency": "GBP" }, "conditionCode": "non_approved_repairer" },
+    { "type": "additional", "amount": { "amount": "250", "currency": "GBP" }, "conditionCode": "driver_under_25", "drivers": ["d2"], "appliesTo": ["accidental_damage"] }
+  ],
+  "optionalExtras": [
+    { "code": "motor_legal_expenses", "price": { "amount": "24.99", "currency": "GBP" }, "selected": true },
+    { "code": "breakdown_assistance", "tier": "national", "price": { "amount": "74.99", "currency": "GBP" }, "selected": false },
+    { "code": "breakdown_assistance", "tier": "roadside", "price": { "amount": "42.99", "currency": "GBP" }, "selected": false },
+    { "code": "breakdown_assistance", "tier": "national-home", "price": { "amount": "84.99", "currency": "GBP" }, "selected": false },
+    { "code": "breakdown_assistance", "tier": "european", "price": { "amount": "129.99", "currency": "GBP" }, "selected": false },
+    { "code": "excess_protection", "price": { "amount": "19.99", "currency": "GBP" }, "selected": false },
+    { "code": "ncd_protection", "price": { "amount": "58.40", "currency": "GBP" }, "selected": false },
+    { "code": "key_replacement", "price": { "amount": "14.99", "currency": "GBP" }, "selected": false },
+    { "code": "hire_car_enhanced", "price": { "amount": "29.99", "currency": "GBP" }, "selected": false }
+  ],
+  "bundles": [
+    { "id": "plus-pack", "price": { "amount": "99.99", "currency": "GBP" }, "selected": false }
+  ],
+  "endorsements": [
+    { "id": "e-garage", "code": "garaged_overnight", "summary": "The car must be kept in a locked garage overnight. Theft claims are not covered if it was not.", "appliesTo": ["theft"] }
+  ],
+  "assumptions": [
+    "You have not had any motoring convictions in the last five years.",
+    "The car has not been modified from the manufacturer's specification."
+  ],
+  "risk": {
+    "motor": {
+      "vehicle": { "make": "Kia", "model": "Niro EV", "yearOfManufacture": 2023, "fuel": "electric", "declaredValue": { "amount": "21500", "currency": "GBP" }, "modified": false, "overnightLocation": "garage" },
+      "use": "commuting",
+      "annualMileage": 8000,
+      "noClaimsYears": 7,
+      "drivers": [
+        { "ref": "d1", "role": "main", "ageBand": "40-49", "licenceType": "full_uk", "licenceHeldBand": "10+" },
+        { "ref": "d2", "role": "named", "ageBand": "21-24", "licenceType": "full_uk", "licenceHeldBand": "3-4" }
+      ]
+    }
+  }
+}

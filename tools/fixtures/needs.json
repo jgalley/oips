@@ -1,0 +1,7 @@
+{
+  "needs": [
+    { "code": "courtesy_car" },
+    { "code": "motor_legal_expenses" },
+    { "code": "breakdown_assistance", "features": ["roadside_assistance", "national_recovery", "home_start"] }
+  ]
+}

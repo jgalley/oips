@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jgalley.github.io/oips/schema/v0.0.1/quote.schema.json",
+  "title": "OIPS quote document",
+  "description": "A personalised price for one customer, pinned to an exact product version and given to the customer with every quote. It carries only what differs from the product document: price, the customer's excesses, priced extras and endorsements. It holds no names, addresses or registration numbers, but it is still the customer's personal data and must only be shared with them or with someone they choose.",
+  "type": "object",
+  "required": [
+    "oips",
+    "documentType",
+    "reference",
+    "lineOfBusiness",
+    "issuedAt",
+    "validUntil",
+    "product",
+    "cover",
+    "premium",
+    "excesses"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "oips": { "const": "0.0.1" },
+    "documentType": { "const": "quote" },
+    "reference": {
+      "description": "The publisher's quote reference, as shown to the customer.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "lineOfBusiness": {
+      "description": "Must match the product document's lineOfBusiness.",
+      "$ref": "product.schema.json#/properties/lineOfBusiness"
+    },
+    "issuedAt": { "type": "string", "format": "date-time" },
+    "validUntil": { "type": "string", "format": "date-time" },
+    "product": {
+      "description": "The exact product document this quote is on. sha256 is of the product document's bytes as published, so the customer can prove which terms they were offered.",
+      "type": "object",
+      "required": ["id", "version", "url", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "version": { "$ref": "common.schema.json#/$defs/semver" },
+        "url": { "type": "string", "format": "uri" },
+        "sha256": { "$ref": "common.schema.json#/$defs/sha256" }
+      }
+    },
+    "seller": {
+      "description": "Who issued the quote, if not the insurer named in the product document (e.g. a broker or comparison site).",
+      "$ref": "common.schema.json#/$defs/organisation"
+    },
+    "sellerRemuneration": {
+      "description": "How the seller is paid for this sale, so the customer can see any incentive behind a recommendation or ranking.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "paidBy"],
+        "additionalProperties": false,
+        "properties": {
+          "type": { "type": "string", "enum": ["commission", "fixed_fee", "add_on_commission", "finance_commission", "other"] },
+          "paidBy": { "type": "string", "enum": ["insurer", "customer", "lender", "other"] },
+          "amount": { "$ref": "common.schema.json#/$defs/money" },
+          "percentOfPremium": { "$ref": "common.schema.json#/$defs/decimalString" },
+          "appliesTo": {
+            "description": "Benefit codes of the add-ons this payment relates to. Omit for the core policy.",
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "cover": {
+      "type": "object",
+      "required": ["startDate", "endDate"],
+      "additionalProperties": false,
+      "properties": {
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" },
+        "autoRenews": { "type": "boolean" }
+      }
+    },
+    "premium": {
+      "type": "object",
+      "required": ["annual", "taxIncluded"],
+      "additionalProperties": false,
+      "properties": {
+        "annual": {
+          "description": "Total price to pay in full for the period, including selected optional extras and any fees charged at inception.",
+          "$ref": "common.schema.json#/$defs/money"
+        },
+        "taxIncluded": { "type": "boolean" },
+        "tax": {
+          "description": "Insurance premium tax or equivalent within the annual figure.",
+          "$ref": "common.schema.json#/$defs/money"
+        },
+        "fees": {
+          "description": "Fees included in the annual figure.",
+          "type": "array",
+          "items": { "$ref": "product.schema.json#/$defs/fee" }
+        },
+        "instalments": {
+          "type": "object",
+          "required": ["deposit", "count", "amount", "totalPayable"],
+          "additionalProperties": false,
+          "properties": {
+            "deposit": { "$ref": "common.schema.json#/$defs/money" },
+            "count": { "type": "integer", "minimum": 1 },
+            "amount": { "$ref": "common.schema.json#/$defs/money" },
+            "frequency": { "type": "string", "enum": ["monthly", "quarterly"] },
+            "totalPayable": { "$ref": "common.schema.json#/$defs/money" },
+            "apr": {
+              "description": "Representative APR as a percentage, e.g. \"29.9\".",
+              "$ref": "common.schema.json#/$defs/decimalString"
+            },
+            "lender": { "$ref": "common.schema.json#/$defs/organisation" }
+          }
+        }
+      }
+    },
+    "excesses": {
+      "description": "The customer's actual excesses. Combine them using the product's excessStacking.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "common.schema.json#/$defs/excess" }
+    },
+    "optionalExtras": {
+      "description": "Every optional extra offered on this quote, priced for this customer. Each code and tier must be an optional extra in the product document.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "price", "selected"],
+        "additionalProperties": false,
+        "properties": {
+          "code": { "type": "string" },
+          "tier": { "$ref": "common.schema.json#/$defs/identifier" },
+          "price": { "$ref": "common.schema.json#/$defs/money" },
+          "selected": { "type": "boolean" }
+        }
+      }
+    },
+    "bundles": {
+      "description": "Every bundle offered on this quote, priced for this customer. Contents are defined by the product document's bundle with the same id.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "price", "selected"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/identifier" },
+          "price": { "$ref": "common.schema.json#/$defs/money" },
+          "selected": { "type": "boolean" }
+        }
+      }
+    },
+    "benefitOverrides": {
+      "description": "Benefits whose terms differ from the product document for this customer. Each entry replaces the product's entry with the same code.",
+      "type": "array",
+      "items": { "$ref": "product.schema.json#/$defs/benefit" }
+    },
+    "endorsements": {
+      "description": "Special terms added to this policy, e.g. a telematics requirement or a restriction on drivers.",
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/term" }
+    },
+    "assumptions": {
+      "description": "Statements the customer has not explicitly answered that the price relies on.",
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/text" }
+    },
+    "risk": {
+      "description": "Line-specific rating facts the price was based on, so the customer can check them.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "motor": { "$ref": "motor.schema.json#/$defs/motorRisk" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "lineOfBusiness": { "const": "motor.private_car" } } },
+      "then": { "$ref": "motor.schema.json#/$defs/quoteCodes" }
+    }
+  ]
+}

@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jgalley.github.io/oips/schema/v0.0.1/common.schema.json",
+  "title": "OIPS common definitions",
+  "description": "Shared building blocks used by every OIPS document type and line of business.",
+  "$defs": {
+    "currencyCode": {
+      "description": "ISO 4217 alphabetic currency code.",
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "decimalString": {
+      "description": "Exact non-negative decimal amount as a string, to avoid floating point rounding. Major units (e.g. pounds, not pence).",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,4})?$"
+    },
+    "money": {
+      "type": "object",
+      "required": ["amount", "currency"],
+      "additionalProperties": false,
+      "properties": {
+        "amount": { "$ref": "#/$defs/decimalString" },
+        "currency": { "$ref": "#/$defs/currencyCode" }
+      }
+    },
+    "duration": {
+      "description": "ISO 8601 duration, e.g. P14D for 14 days, P90D, P1Y.",
+      "type": "string",
+      "pattern": "^P(?!$)([0-9]+Y)?([0-9]+M)?([0-9]+W)?([0-9]+D)?(T(?=[0-9])([0-9]+H)?([0-9]+M)?([0-9]+S)?)?$"
+    },
+    "text": {
+      "description": "Plain-language text. A bare string is in the document's default language; an object maps BCP 47 language tags to translations.",
+      "oneOf": [
+        { "type": "string", "minLength": 1, "maxLength": 2000 },
+        {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$" },
+          "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      ]
+    },
+    "identifier": {
+      "description": "Stable, publisher-assigned identifier. Lowercase letters, digits, dots, hyphens and underscores.",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "clauseRef": {
+      "description": "Pointer to the authoritative wording this data summarises. The policy wording remains the legal contract; this document must not contradict it.",
+      "type": "object",
+      "required": ["document", "section"],
+      "additionalProperties": false,
+      "properties": {
+        "document": {
+          "description": "id of an entry in the product's documents array.",
+          "$ref": "#/$defs/identifier"
+        },
+        "section": {
+          "description": "Section or clause number as printed in the wording, e.g. \"4.2(b)\".",
+          "type": "string",
+          "minLength": 1
+        },
+        "page": { "type": "integer", "minimum": 1 },
+        "anchor": {
+          "description": "Fragment identifier in an HTML wording, if one exists.",
+          "type": "string"
+        }
+      }
+    },
+    "clauseRefs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/clauseRef" }
+    },
+    "availability": {
+      "description": "Whether a benefit forms part of the product. 'not_stated' means the publisher has not declared it, which consumers must never read as 'included' or 'excluded'.",
+      "type": "string",
+      "enum": ["included", "optional_extra", "not_included", "not_stated"]
+    },
+    "limitBasis": {
+      "type": "string",
+      "enum": [
+        "per_claim",
+        "per_incident",
+        "per_person",
+        "per_item",
+        "per_day",
+        "per_policy_year",
+        "aggregate"
+      ]
+    },
+    "limit": {
+      "description": "A cap on what is paid or provided. Use exactly one of amount, unlimited, marketValue or units.",
+      "type": "object",
+      "required": ["basis"],
+      "additionalProperties": false,
+      "properties": {
+        "label": { "$ref": "#/$defs/text" },
+        "basis": { "$ref": "#/$defs/limitBasis" },
+        "amount": { "$ref": "#/$defs/money" },
+        "unlimited": { "const": true },
+        "marketValue": {
+          "description": "Paid up to the market value of the insured item at the time of loss.",
+          "const": true
+        },
+        "marketValueCap": {
+          "description": "With marketValue: payment is the lower of market value and this cap.",
+          "type": "string",
+          "enum": ["declared_value"]
+        },
+        "units": {
+          "description": "A non-monetary cap, e.g. a number of days or claims.",
+          "type": "object",
+          "required": ["value", "unit"],
+          "additionalProperties": false,
+          "properties": {
+            "value": { "type": "number", "minimum": 0 },
+            "unit": { "type": "string", "enum": ["days", "claims", "journeys", "items", "miles", "km"] }
+          }
+        },
+        "maxDuration": { "$ref": "#/$defs/duration" },
+        "clauses": { "$ref": "#/$defs/clauseRefs" }
+      },
+      "oneOf": [
+        { "required": ["amount"] },
+        { "required": ["unlimited"] },
+        { "required": ["marketValue"] },
+        { "required": ["units"] }
+      ],
+      "dependentRequired": { "marketValueCap": ["marketValue"] }
+    },
+    "excess": {
+      "description": "An amount the policyholder pays towards a claim. 'compulsory' is set by the insurer; 'voluntary' is chosen by the customer; 'additional' applies to specific circumstances such as young drivers.",
+      "type": "object",
+      "required": ["type", "amount"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["compulsory", "voluntary", "additional"] },
+        "amount": { "$ref": "#/$defs/money" },
+        "appliesTo": {
+          "description": "Claim types (benefit codes) this excess applies to. Omit to mean every claim.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "condition": {
+          "description": "When an additional excess applies, in plain language.",
+          "$ref": "#/$defs/text"
+        },
+        "conditionCode": {
+          "description": "Machine-readable circumstance in which this excess applies.",
+          "type": "string",
+          "enum": [
+            "driver_under_21",
+            "driver_under_25",
+            "provisional_licence",
+            "licence_held_under_1_year",
+            "licence_held_under_2_years",
+            "non_approved_repairer",
+            "unnamed_driver",
+            "glass_repair",
+            "glass_replacement",
+            "non_approved_glass_supplier",
+            "other"
+          ]
+        },
+        "drivers": {
+          "description": "In a quote: refs of the drivers this excess applies to. Omit to mean every driver.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/identifier" }
+        },
+        "clauses": { "$ref": "#/$defs/clauseRefs" }
+      }
+    },
+    "term": {
+      "description": "A condition, exclusion or endorsement stated as structured data plus a plain-language summary.",
+      "type": "object",
+      "required": ["id", "summary"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "code": {
+          "description": "Standard vocabulary code from the line-of-business module, where one fits. Enables like-for-like comparison.",
+          "type": "string"
+        },
+        "summary": { "$ref": "#/$defs/text" },
+        "appliesTo": {
+          "description": "Benefit codes this term affects. Omit to mean the whole policy.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "clauses": { "$ref": "#/$defs/clauseRefs" }
+      }
+    },
+    "organisation": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "tradingName": { "type": "string" },
+        "regulator": {
+          "description": "Regulator and registration number, e.g. FCA Firm Reference Number.",
+          "type": "object",
+          "required": ["authority", "reference"],
+          "additionalProperties": false,
+          "properties": {
+            "authority": { "type": "string", "examples": ["FCA", "PRA", "CBI", "BaFin"] },
+            "reference": { "type": "string" }
+          }
+        },
+        "lei": {
+          "description": "ISO 17442 Legal Entity Identifier.",
+          "type": "string",
+          "pattern": "^[A-Z0-9]{18}[0-9]{2}$"
+        },
+        "website": { "type": "string", "format": "uri" }
+      }
+    },
+    "documentLink": {
+      "type": "object",
+      "required": ["id", "type", "url"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "type": {
+          "type": "string",
+          "enum": [
+            "policy_wording",
+            "ipid",
+            "schedule_template",
+            "add_on_wording",
+            "terms_of_business",
+            "other"
+          ]
+        },
+        "title": { "$ref": "#/$defs/text" },
+        "url": { "type": "string", "format": "uri" },
+        "mediaType": { "type": "string", "examples": ["application/pdf", "text/html"] },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "version": { "type": "string" }
+      }
+    }
+  }
+}

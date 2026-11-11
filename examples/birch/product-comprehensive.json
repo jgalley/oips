@@ -1,0 +1,127 @@
+{
+  "$schema": "../../schema/v0.0.1/product.schema.json",
+  "oips": "0.0.1",
+  "documentType": "product",
+  "id": "example.birch.motor.essentials",
+  "version": "1.4.0",
+  "lineOfBusiness": "motor.private_car",
+  "jurisdiction": "GB",
+  "language": "en-GB",
+  "name": "Birch Direct Car Insurance Essentials",
+  "tier": "Essentials",
+  "summary": "Fictional example product. Lower-priced comprehensive cover with fewer extras included.",
+  "publishedAt": "2026-09-15T08:00:00Z",
+  "effective": { "from": "2026-09-15", "to": null },
+  "insurer": {
+    "name": "Birch Underwriting plc (fictional)",
+    "regulator": { "authority": "FCA", "reference": "000002" }
+  },
+  "distributor": {
+    "name": "Birch Direct Ltd (fictional)",
+    "regulator": { "authority": "FCA", "reference": "000003" },
+    "website": "https://birch.example"
+  },
+  "documents": [
+    { "id": "wording", "type": "policy_wording", "url": "https://birch.example/policy/essentials-1.4.html", "mediaType": "text/html" },
+    { "id": "ipid", "type": "ipid", "url": "https://birch.example/policy/essentials-ipid-1.4.pdf", "mediaType": "application/pdf" }
+  ],
+  "benefits": [
+    { "code": "third_party_injury", "availability": "included", "limits": [{ "basis": "per_incident", "unlimited": true }], "clauses": [{ "document": "wording", "section": "A1", "anchor": "a1" }] },
+    { "code": "third_party_property", "availability": "included", "limits": [{ "basis": "per_incident", "amount": { "amount": "5000000", "currency": "GBP" } }], "clauses": [{ "document": "wording", "section": "A2", "anchor": "a2" }] },
+    { "code": "fire", "availability": "included", "limits": [{ "basis": "per_claim", "marketValue": true, "marketValueCap": "declared_value" }], "clauses": [{ "document": "wording", "section": "B1", "anchor": "b1" }] },
+    {
+      "code": "theft", "availability": "included", "limits": [{ "basis": "per_claim", "marketValue": true, "marketValueCap": "declared_value" }],
+      "exclusions": [
+        { "id": "theft-keys", "code": "keys_left_in_car", "summary": "No cover if the keys were left in, on or near the car, including keyless entry relay theft where the fob was not stored in a signal-blocking pouch.", "clauses": [{ "document": "wording", "section": "B1.3", "anchor": "b1-3" }] },
+        { "id": "theft-unlocked", "code": "car_left_unlocked", "summary": "No cover if the car was left unlocked or with a window open.", "clauses": [{ "document": "wording", "section": "B1.4", "anchor": "b1-4" }] }
+      ],
+      "clauses": [{ "document": "wording", "section": "B1", "anchor": "b1" }]
+    },
+    { "code": "accidental_damage", "availability": "included", "limits": [{ "basis": "per_claim", "marketValue": true, "marketValueCap": "declared_value" }], "clauses": [{ "document": "wording", "section": "B2", "anchor": "b2" }] },
+    {
+      "code": "windscreen_glass", "availability": "included",
+      "excesses": [
+        { "type": "compulsory", "amount": { "amount": "50", "currency": "GBP" }, "conditionCode": "glass_repair", "condition": "Repair", "appliesTo": ["windscreen_glass"] },
+        { "type": "compulsory", "amount": { "amount": "150", "currency": "GBP" }, "conditionCode": "glass_replacement", "condition": "Replacement", "appliesTo": ["windscreen_glass"] }
+      ],
+      "clauses": [{ "document": "wording", "section": "C", "anchor": "c" }]
+    },
+    { "code": "courtesy_car", "availability": "optional_extra", "vehicleClass": "small_car", "guaranteed": false, "summary": "Subject to availability.", "optionalExtra": { "indicativePrice": { "amount": "19.99", "currency": "GBP" } }, "providedWhen": ["approved_repairer_used", "car_repairable"], "limits": [{ "basis": "per_claim", "units": { "value": 14, "unit": "days" } }] },
+    { "code": "hire_car_enhanced", "availability": "not_included" },
+    { "code": "new_car_replacement", "availability": "not_included" },
+    { "code": "personal_accident", "availability": "included", "limits": [{ "basis": "per_person", "amount": { "amount": "2500", "currency": "GBP" } }], "providedWhen": ["policyholder_only"], "clauses": [{ "document": "wording", "section": "D", "anchor": "d" }] },
+    { "code": "medical_expenses", "availability": "included", "limits": [{ "basis": "per_person", "amount": { "amount": "100", "currency": "GBP" } }], "clauses": [{ "document": "wording", "section": "E", "anchor": "e" }] },
+    { "code": "personal_belongings", "availability": "included", "limits": [{ "basis": "per_incident", "amount": { "amount": "100", "currency": "GBP" } }], "clauses": [{ "document": "wording", "section": "F", "anchor": "f" }] },
+    { "code": "in_car_entertainment", "availability": "included", "limits": [{ "basis": "per_incident", "amount": { "amount": "250", "currency": "GBP" } }], "clauses": [{ "document": "wording", "section": "G", "anchor": "g" }] },
+    { "code": "child_seats", "availability": "not_stated" },
+    { "code": "key_replacement", "availability": "optional_extra", "optionalExtra": { "indicativePrice": { "amount": "12.99", "currency": "GBP" } }, "limits": [{ "basis": "per_policy_year", "amount": { "amount": "1000", "currency": "GBP" } }] },
+    { "code": "misfuelling", "availability": "included", "limits": [{ "basis": "per_policy_year", "amount": { "amount": "500", "currency": "GBP" } }], "clauses": [{ "document": "wording", "section": "B2.6", "anchor": "b2-6" }] },
+    { "code": "ev_battery", "availability": "included", "limits": [{ "basis": "per_claim", "marketValue": true, "marketValueCap": "declared_value" }], "clauses": [{ "document": "wording", "section": "B2.8", "anchor": "b2-8" }] },
+    { "code": "ev_charging_equipment", "availability": "not_included" },
+    { "code": "driving_other_cars", "availability": "not_included" },
+    { "code": "european_cover", "availability": "included", "coverBasis": "legal_minimum", "territories": ["EEA"], "limits": [{ "basis": "per_policy_year", "units": { "value": 30, "unit": "days" } }], "summary": "Legal minimum cover only. Full cover abroad is not available on this product.", "clauses": [{ "document": "wording", "section": "H", "anchor": "h" }] },
+    { "code": "uninsured_driver", "availability": "included", "providedWhen": ["non_fault_claim", "third_party_identified"], "clauses": [{ "document": "wording", "section": "B2.9", "anchor": "b2-9" }] },
+    { "code": "vandalism", "availability": "not_included" },
+    { "code": "guaranteed_repairs", "availability": "included", "providedWhen": ["approved_repairer_used"], "limits": [{ "basis": "per_claim", "unlimited": true, "maxDuration": "P3Y" }], "clauses": [{ "document": "wording", "section": "B2.10", "anchor": "b2-10" }] },
+    { "code": "ncd_protection", "availability": "optional_extra", "optionalExtra": { "indicativePrice": { "amount": "35.00", "currency": "GBP" } }, "limits": [{ "basis": "aggregate", "units": { "value": 1, "unit": "claims" }, "maxDuration": "P1Y", "label": "One claim a year" }] },
+    {
+      "code": "breakdown_assistance", "availability": "optional_extra",
+      "optionalExtra": {
+        "tiers": [
+          { "id": "essential", "name": "Breakdown Essential", "features": ["roadside_assistance", "national_recovery"], "limits": [{ "basis": "per_policy_year", "units": { "value": 5, "unit": "claims" } }], "indicativePrice": { "amount": "49.99", "currency": "GBP" } },
+          { "id": "complete", "name": "Breakdown Complete", "features": ["roadside_assistance", "national_recovery", "home_start", "onward_travel", "personal_cover"], "indicativePrice": { "amount": "139.99", "currency": "GBP" } }
+        ]
+      },
+      "provider": { "name": "Example Rescue Ltd (fictional)" }
+    },
+    { "code": "motor_legal_expenses", "availability": "included", "limits": [{ "basis": "per_claim", "amount": { "amount": "50000", "currency": "GBP" } }], "clauses": [{ "document": "wording", "section": "J", "anchor": "j" }] },
+    { "code": "trailer_caravan_liability", "availability": "included", "coverBasis": "third_party_only", "clauses": [{ "document": "wording", "section": "A3", "anchor": "a3" }] },
+    { "code": "emergency_travel_accommodation", "availability": "not_included" },
+    { "code": "excess_protection", "availability": "not_included" },
+    { "code": "gap_insurance", "availability": "not_included" },
+    { "code": "tyre_alloy_wheel", "availability": "optional_extra", "optionalExtra": { "indicativePrice": { "amount": "39.99", "currency": "GBP" } }, "limits": [{ "basis": "per_policy_year", "amount": { "amount": "750", "currency": "GBP" } }] },
+    { "code": "scratch_dent", "availability": "not_stated" }
+  ],
+  "excessStacking": "highest_applies",
+  "excesses": [
+    { "type": "compulsory", "amount": { "amount": "350", "currency": "GBP" }, "appliesTo": ["accidental_damage", "fire", "theft"] },
+    { "type": "additional", "amount": { "amount": "400", "currency": "GBP" }, "conditionCode": "driver_under_25", "condition": "Driver aged under 25 at the time of the incident.", "appliesTo": ["accidental_damage"] },
+    { "type": "additional", "amount": { "amount": "200", "currency": "GBP" }, "conditionCode": "unnamed_driver", "condition": "Car driven by someone not named on the policy, where allowed." }
+  ],
+  "exclusions": [
+    { "id": "racing", "code": "racing_track_days", "summary": "No cover for racing, rallies or track days." },
+    { "id": "influence", "code": "under_influence", "summary": "No cover if the driver is over the drink or drug driving limit, other than the legal minimum to third parties." },
+    { "id": "delivery", "code": "ride_hailing_delivery", "summary": "No cover for paid passenger or food delivery use." },
+    { "id": "deception", "code": "theft_by_deception", "summary": "No cover if the car is taken by someone pretending to be a buyer." },
+    { "id": "wear", "code": "wear_and_tear", "summary": "No cover for breakdown, wear and tear or depreciation." }
+  ],
+  "conditions": [
+    { "id": "report-claims", "code": "report_incident_promptly", "summary": "Tell us about any incident within 24 hours.", "clauses": [{ "document": "wording", "section": "K2", "anchor": "k2" }] },
+    { "id": "fob-pouch", "code": "keyless_fob_storage", "summary": "Store keyless entry fobs in a signal-blocking pouch or box when the car is parked at home.", "appliesTo": ["theft"], "clauses": [{ "document": "wording", "section": "K5", "anchor": "k5" }] }
+  ],
+  "fees": [
+    { "code": "mid_term_adjustment", "amount": { "amount": "35", "currency": "GBP" } },
+    { "code": "cancellation_in_cooling_off", "amount": { "amount": "30", "currency": "GBP" } },
+    { "code": "cancellation_after_cooling_off", "amount": { "amount": "65", "currency": "GBP" } },
+    { "code": "missed_payment", "amount": { "amount": "25", "currency": "GBP" } }
+  ],
+  "cancellation": {
+    "coolingOffPeriod": "P14D",
+    "refundBasisAfterCoolingOff": "short_period_scale",
+    "refundIfClaimMade": false
+  },
+  "claims": { "url": "https://birch.example/claims", "available24x7": false },
+  "complaints": {
+    "ombudsman": { "name": "Financial Ombudsman Service", "url": "https://www.financial-ombudsman.org.uk" }
+  },
+  "compensationScheme": { "name": "Financial Services Compensation Scheme", "coverPercent": 100 },
+  "motor": {
+    "coverLevel": "comprehensive",
+    "vehicleUseOffered": ["social_domestic_pleasure", "commuting"],
+    "drivers": { "maxNamedDrivers": 2, "anyDriverOption": false, "minAge": 21, "maxAge": 79, "learnerDriversCovered": false },
+    "noClaimsDiscount": { "maxYearsRecognised": 9, "protectionOffered": true },
+    "telematics": "optional",
+    "writeOffSettlement": "lower_of_market_and_declared",
+    "repairParts": "manufacturer_or_equivalent"
+  }
+}

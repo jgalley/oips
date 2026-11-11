@@ -1,0 +1,361 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jgalley.github.io/oips/schema/v0.0.1/product.schema.json",
+  "title": "OIPS product document",
+  "description": "Everything a customer needs to compare one insurance product with another: cover, limits, excesses, exclusions, conditions, fees and service. Published by the insurer or distributor, free to read and reuse. The policy wording remains the legal contract; every structured value should carry a clauseRef to it.",
+  "type": "object",
+  "required": [
+    "oips",
+    "documentType",
+    "id",
+    "version",
+    "lineOfBusiness",
+    "jurisdiction",
+    "language",
+    "name",
+    "publishedAt",
+    "effective",
+    "insurer",
+    "documents",
+    "benefits",
+    "excessStacking",
+    "cancellation",
+    "complaints"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "oips": {
+      "description": "Version of this standard the document conforms to.",
+      "const": "0.0.1"
+    },
+    "documentType": { "const": "product" },
+    "id": {
+      "description": "Globally unique product id: the publisher's domain reversed, then a product slug. Stable across versions.",
+      "type": "string",
+      "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)+$",
+      "examples": ["uk.co.example-insurer.motor.comprehensive-plus"]
+    },
+    "version": {
+      "description": "Version of this product's terms. Any change to cover, limits or wording bumps it. Quotes pin to a version.",
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "lineOfBusiness": {
+      "description": "Selects the line-of-business module that defines benefit codes and line-specific fields.",
+      "type": "string",
+      "enum": ["motor.private_car"]
+    },
+    "jurisdiction": {
+      "description": "ISO 3166-1 alpha-2 country, or a subdivision such as GB-NIR where terms differ.",
+      "type": "string",
+      "pattern": "^[A-Z]{2}(-[A-Z0-9]{1,3})?$"
+    },
+    "language": {
+      "description": "Default BCP 47 language of text fields.",
+      "type": "string",
+      "examples": ["en-GB"]
+    },
+    "name": { "$ref": "common.schema.json#/$defs/text" },
+    "tier": {
+      "description": "Where this product sits in the publisher's own range, e.g. Essentials, Standard, Premier. Informational only; compare on benefits, not tier names.",
+      "type": "string"
+    },
+    "summary": { "$ref": "common.schema.json#/$defs/text" },
+    "publishedAt": { "type": "string", "format": "date-time" },
+    "effective": {
+      "description": "Dates between which new policies may be sold on these terms.",
+      "type": "object",
+      "required": ["from"],
+      "additionalProperties": false,
+      "properties": {
+        "from": { "type": "string", "format": "date" },
+        "to": { "type": ["string", "null"], "format": "date" }
+      }
+    },
+    "insurer": {
+      "description": "The firm that carries the risk (the underwriter).",
+      "$ref": "common.schema.json#/$defs/organisation"
+    },
+    "distributor": {
+      "description": "The brand or broker selling the product, if different from the insurer.",
+      "$ref": "common.schema.json#/$defs/organisation"
+    },
+    "documents": {
+      "description": "The legal documents this data summarises. clauseRefs point into these by id.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "common.schema.json#/$defs/documentLink" },
+      "contains": {
+        "type": "object",
+        "properties": { "type": { "const": "policy_wording" } },
+        "required": ["type"]
+      }
+    },
+    "benefits": {
+      "description": "One entry per benefit code. A product should list every code in its line-of-business vocabulary, marking those it does not offer as not_included, so that silence is never ambiguous.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/benefit" }
+    },
+    "excesses": {
+      "description": "Policy-level excesses. Quote documents carry the customer's actual figures.",
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/excess" }
+    },
+    "bundles": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/bundle" }
+    },
+    "excessStacking": {
+      "description": "How additional excesses combine when more than one applies to a claim (e.g. under 21 and under 25). Compulsory and voluntary excesses always add.",
+      "type": "string",
+      "enum": ["cumulative", "highest_applies", "not_stated"]
+    },
+    "exclusions": {
+      "description": "General exclusions that apply across the policy.",
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/term" }
+    },
+    "conditions": {
+      "description": "Obligations on the policyholder; breaching one can void cover or reduce a claim.",
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/term" }
+    },
+    "fees": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fee" }
+    },
+    "cancellation": {
+      "type": "object",
+      "required": ["coolingOffPeriod"],
+      "additionalProperties": false,
+      "properties": {
+        "coolingOffPeriod": { "$ref": "common.schema.json#/$defs/duration" },
+        "refundBasisAfterCoolingOff": {
+          "type": "string",
+          "enum": ["pro_rata", "short_period_scale", "no_refund", "not_stated"]
+        },
+        "refundIfClaimMade": {
+          "type": "boolean",
+          "description": "Whether any premium is refunded on cancellation when a claim has been made in the current policy year."
+        },
+        "clauses": { "$ref": "common.schema.json#/$defs/clauseRefs" }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "phone": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "available24x7": { "type": "boolean" },
+        "handledBy": { "$ref": "common.schema.json#/$defs/organisation" }
+      }
+    },
+    "complaints": {
+      "type": "object",
+      "required": ["ombudsman"],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "ombudsman": {
+          "type": "object",
+          "required": ["name"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string", "examples": ["Financial Ombudsman Service"] },
+            "url": { "type": "string", "format": "uri" }
+          }
+        }
+      }
+    },
+    "compensationScheme": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "examples": ["Financial Services Compensation Scheme"] },
+        "url": { "type": "string", "format": "uri" },
+        "coverPercent": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "motor": { "$ref": "motor.schema.json#/$defs/motorProduct" },
+    "extensions": {
+      "description": "Publisher-specific data outside the standard. Keys must be the publisher's reversed domain. Comparison tools may ignore it.",
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)+$" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "lineOfBusiness": { "const": "motor.private_car" } }
+      },
+      "then": {
+        "required": ["motor"],
+        "$ref": "motor.schema.json#/$defs/productCodes"
+      }
+    }
+  ],
+  "$defs": {
+    "features": {
+      "description": "Feature codes from the line-of-business vocabulary for this benefit.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "bundle": {
+      "description": "Optional extras sold together at one price. Each item must be an optional extra (and tier) of this product.",
+      "type": "object",
+      "required": ["id", "name", "contains"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "name": { "$ref": "common.schema.json#/$defs/text" },
+        "contains": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["code"],
+            "additionalProperties": false,
+            "properties": {
+              "code": { "type": "string" },
+              "tier": { "$ref": "common.schema.json#/$defs/identifier" }
+            }
+          }
+        },
+        "indicativePrice": { "$ref": "common.schema.json#/$defs/money" }
+      }
+    },
+    "benefit": {
+      "type": "object",
+      "required": ["code", "availability"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "description": "Benefit code from the line-of-business vocabulary.",
+          "type": "string"
+        },
+        "availability": { "$ref": "common.schema.json#/$defs/availability" },
+        "summary": { "$ref": "common.schema.json#/$defs/text" },
+        "limits": {
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/$defs/limit" }
+        },
+        "excesses": {
+          "description": "Excesses specific to claims under this benefit, e.g. a windscreen excess.",
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/$defs/excess" }
+        },
+        "providedWhen": {
+          "description": "Circumstances that must hold for the benefit to apply. Codes come from the line-of-business module.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "qualifyingPeriod": {
+          "description": "Period after a trigger date (e.g. first registration) during which the benefit is available.",
+          "$ref": "common.schema.json#/$defs/duration"
+        },
+        "coverBasis": {
+          "description": "For benefits that extend cover elsewhere (another country, another car): the level of cover that applies there.",
+          "type": "string",
+          "enum": ["full_policy_cover", "third_party_fire_theft", "third_party_only", "legal_minimum"]
+        },
+        "features": {
+          "description": "For benefits made of several services (e.g. breakdown): what this benefit includes. When tiers exist, each tier lists its own.",
+          "$ref": "#/$defs/features"
+        },
+        "vehicleClass": {
+          "description": "For replacement-vehicle benefits: the size of car provided.",
+          "type": "string",
+          "enum": ["small_car", "same_size", "like_for_like", "not_stated"]
+        },
+        "guaranteed": {
+          "description": "For replacement-vehicle benefits: false when provision is subject to availability.",
+          "type": "boolean"
+        },
+        "territories": {
+          "description": "ISO 3166-1 alpha-2 codes, or EEA, where the benefit applies.",
+          "type": "array",
+          "items": { "type": "string", "pattern": "^([A-Z]{2}|EEA)$" }
+        },
+        "optionalExtra": {
+          "description": "Present when availability is optional_extra.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "indicativePrice": {
+              "description": "Typical annual price before personal rating. The quote document carries the real figure.",
+              "$ref": "common.schema.json#/$defs/money"
+            },
+            "tiers": {
+              "description": "Levels of the add-on. Compare tiers on features, never on names.",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "name"],
+                "additionalProperties": false,
+                "properties": {
+                  "id": { "$ref": "common.schema.json#/$defs/identifier" },
+                  "name": { "$ref": "common.schema.json#/$defs/text" },
+                  "features": { "$ref": "#/$defs/features" },
+                  "limits": {
+                    "type": "array",
+                    "items": { "$ref": "common.schema.json#/$defs/limit" }
+                  },
+                  "indicativePrice": { "$ref": "common.schema.json#/$defs/money" }
+                }
+              }
+            }
+          }
+        },
+        "provider": {
+          "description": "Third party that delivers or underwrites this benefit, e.g. a breakdown or legal expenses provider.",
+          "$ref": "common.schema.json#/$defs/organisation"
+        },
+        "exclusions": {
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/$defs/term" }
+        },
+        "clauses": { "$ref": "common.schema.json#/$defs/clauseRefs" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "availability": { "const": "optional_extra" } } },
+          "then": { "required": ["optionalExtra"] },
+          "else": { "not": { "required": ["optionalExtra"] } }
+        },
+        {
+          "description": "A benefit that is not offered, or not declared, carries no terms.",
+          "if": { "properties": { "availability": { "enum": ["not_included", "not_stated"] } } },
+          "then": {
+            "propertyNames": { "enum": ["code", "availability", "summary", "clauses"] }
+          }
+        }
+      ]
+    },
+    "fee": {
+      "type": "object",
+      "required": ["code", "amount"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "mid_term_adjustment",
+            "cancellation_in_cooling_off",
+            "cancellation_after_cooling_off",
+            "duplicate_documents",
+            "missed_payment",
+            "arrangement",
+            "other"
+          ]
+        },
+        "amount": { "$ref": "common.schema.json#/$defs/money" },
+        "label": { "$ref": "common.schema.json#/$defs/text" },
+        "clauses": { "$ref": "common.schema.json#/$defs/clauseRefs" }
+      }
+    }
+  }
+}

@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jgalley.github.io/oips/schema/v0.0.1/motor.schema.json",
+  "title": "OIPS motor module (private car)",
+  "description": "Benefit vocabulary and line-specific fields for private car insurance. Codes are the unit of comparison: two products are compared code by code.",
+  "$defs": {
+    "benefitCode": {
+      "anyOf": [
+        { "const": "third_party_injury", "description": "Liability for death or injury to other people. Compulsory under road traffic law." },
+        { "const": "third_party_property", "description": "Liability for damage to other people's property." },
+        { "const": "fire", "description": "Damage to the insured car by fire, lightning or explosion." },
+        { "const": "theft", "description": "Loss of or damage to the insured car by theft or attempted theft." },
+        { "const": "accidental_damage", "description": "Damage to the insured car from an accident or malicious damage, regardless of fault." },
+        { "const": "windscreen_glass", "description": "Repair or replacement of windscreen and windows, usually without affecting the no claims discount." },
+        { "const": "courtesy_car", "description": "A replacement car while the insured car is repaired." },
+        { "const": "hire_car_enhanced", "description": "A like-for-like or larger hire car, including after theft or a write-off." },
+        { "const": "new_car_replacement", "description": "Replacement with a new car of the same make and model if the insured car is written off or stolen within a qualifying period of first registration." },
+        { "const": "personal_accident", "description": "Fixed benefit for death or specified serious injury of the driver (and sometimes spouse or passengers) in an accident in the car." },
+        { "const": "medical_expenses", "description": "Medical costs for the driver and passengers after an accident." },
+        { "const": "personal_belongings", "description": "Loss of or damage to belongings in the car." },
+        { "const": "in_car_entertainment", "description": "Permanently fitted audio, navigation and entertainment equipment." },
+        { "const": "child_seats", "description": "Replacement of child car seats after an accident, whether or not visibly damaged." },
+        { "const": "key_replacement", "description": "Replacement keys, fobs and lock changes if keys are lost or stolen." },
+        { "const": "misfuelling", "description": "Draining and flushing the engine after filling with the wrong fuel." },
+        { "const": "ev_battery", "description": "Damage to an owned electric vehicle battery." },
+        { "const": "ev_charging_equipment", "description": "Charging cables, portable chargers and home wallboxes, and liability arising from their use." },
+        { "const": "driving_other_cars", "description": "Policyholder driving a car they do not own. coverBasis states the level of cover; usually third party only." },
+        { "const": "european_cover", "description": "Cover while driving abroad. coverBasis and limits (units: days) state level and duration; territories lists where." },
+        { "const": "uninsured_driver", "description": "No excess and no loss of no claims discount when hit by an identified uninsured driver who is at fault." },
+        { "const": "vandalism", "description": "No loss of no claims discount for a vandalism claim." },
+        { "const": "guaranteed_repairs", "description": "Guarantee on repairs carried out by the insurer's approved repairer." },
+        { "const": "ncd_protection", "description": "Protects the no claims discount from being reduced after a set number of claims." },
+        { "const": "breakdown_assistance", "description": "Roadside assistance and recovery." },
+        { "const": "motor_legal_expenses", "description": "Legal costs to recover uninsured losses (excess, injury compensation, loss of earnings) after a non-fault accident." },
+        { "const": "trailer_caravan_liability", "description": "Third party liability while towing a trailer or caravan." },
+        { "const": "emergency_travel_accommodation", "description": "Onward travel or overnight accommodation after an accident." },
+        { "const": "excess_protection", "description": "Refunds the policyholder's excess after a claim." },
+        { "const": "gap_insurance", "description": "Pays the difference between the write-off settlement and the finance outstanding or original price." },
+        { "const": "tyre_alloy_wheel", "description": "Repair or replacement of damaged tyres and alloy wheels." },
+        { "const": "scratch_dent", "description": "Cosmetic repair of minor scratches, scuffs and dents." }
+      ]
+    },
+    "providedWhenCode": {
+      "anyOf": [
+        { "const": "approved_repairer_used", "description": "Only when the car is repaired by the insurer's approved repairer." },
+        { "const": "car_repairable", "description": "Not if the car is written off or stolen and not recovered." },
+        { "const": "car_written_off_or_stolen", "description": "Only after a total loss or unrecovered theft." },
+        { "const": "non_fault_claim", "description": "Only when a third party is at fault." },
+        { "const": "third_party_identified", "description": "Only when the other driver's details are known." },
+        { "const": "within_qualifying_period", "description": "Only within the benefit's qualifyingPeriod after first registration or purchase." },
+        { "const": "first_owner", "description": "Only when the policyholder is the first registered keeper." },
+        { "const": "owner_has_own_policy", "description": "Only when the other car has its own valid insurance." },
+        { "const": "policyholder_only", "description": "Only for the policyholder, not named drivers." },
+        { "const": "other", "description": "A circumstance not in this list; describe it in summary." }
+      ]
+    },
+    "exclusionCode": {
+      "anyOf": [
+        { "const": "keys_left_in_car", "description": "Theft when keys were left in or on the car." },
+        { "const": "car_left_unlocked", "description": "Theft when the car was left unlocked or with windows open." },
+        { "const": "unapproved_modifications", "description": "Claims where undeclared modifications contributed." },
+        { "const": "wear_and_tear", "description": "Mechanical, electrical or electronic breakdown and wear and tear." },
+        { "const": "under_influence", "description": "Driver over the drink or drug driving limit." },
+        { "const": "unlicensed_driver", "description": "Driver without a valid licence for the car." },
+        { "const": "racing_track_days", "description": "Racing, rallies, track days or speed testing." },
+        { "const": "deliberate_damage_by_family", "description": "Damage caused deliberately by a family member or a person living with the policyholder." },
+        { "const": "theft_by_deception", "description": "Loss through fraudulent sale or deception." },
+        { "const": "ride_hailing_delivery", "description": "Use for hire and reward, ride-hailing or food delivery." },
+        { "const": "airside_use", "description": "Use on airport airside areas." },
+        { "const": "war_terrorism", "description": "War, terrorism and related risks beyond legal minimums." },
+        { "const": "depreciation", "description": "Loss of value after a repair." },
+        { "const": "other", "description": "An exclusion not in this list; describe it in summary." }
+      ]
+    },
+    "conditionCode": {
+      "anyOf": [
+        { "const": "report_incident_promptly", "description": "Report any incident within a set time, even with no intention to claim." },
+        { "const": "keep_roadworthy", "description": "Keep the car roadworthy with a valid MOT." },
+        { "const": "keyless_fob_storage", "description": "Store keyless entry fobs in a signal-blocking pouch or box." },
+        { "const": "garaged_overnight", "description": "Keep the car in a locked garage overnight." },
+        { "const": "telematics_device", "description": "Keep a telematics device or app active." },
+        { "const": "security_device", "description": "Fit and use a specified alarm, immobiliser or tracker." },
+        { "const": "mileage_limit", "description": "Stay within the declared annual mileage." },
+        { "const": "named_drivers_only", "description": "Only drivers named on the schedule may drive." },
+        { "const": "other", "description": "A condition not in this list; describe it in summary." }
+      ]
+    },
+    "excessCodes": {
+      "properties": {
+        "appliesTo": { "items": { "$ref": "#/$defs/benefitCode" } }
+      }
+    },
+    "exclusionTermCodes": {
+      "properties": {
+        "code": { "$ref": "#/$defs/exclusionCode" },
+        "appliesTo": { "items": { "$ref": "#/$defs/benefitCode" } }
+      }
+    },
+    "conditionTermCodes": {
+      "properties": {
+        "code": { "$ref": "#/$defs/conditionCode" },
+        "appliesTo": { "items": { "$ref": "#/$defs/benefitCode" } }
+      }
+    },
+    "endorsementTermCodes": {
+      "properties": {
+        "code": { "anyOf": [{ "$ref": "#/$defs/conditionCode" }, { "$ref": "#/$defs/exclusionCode" }] },
+        "appliesTo": { "items": { "$ref": "#/$defs/benefitCode" } }
+      }
+    },
+    "breakdownFeature": {
+      "anyOf": [
+        { "const": "roadside_assistance", "description": "Repair at the roadside, or a tow to a local garage, away from home." },
+        { "const": "national_recovery", "description": "Recovery of the car and passengers to any one UK destination." },
+        { "const": "home_start", "description": "Assistance at or near the policyholder's home." },
+        { "const": "onward_travel", "description": "Hire car, onward travel or overnight accommodation if the car cannot be fixed the same day." },
+        { "const": "european_breakdown", "description": "Roadside assistance and recovery while driving in Europe." },
+        { "const": "personal_cover", "description": "Covers the policyholder in any car, as driver or passenger, not only the insured car." },
+        { "const": "caravan_trailer", "description": "Recovery of a caravan or trailer being towed." },
+        { "const": "parts_and_labour", "description": "Pays for garage parts and labour after a breakdown, not just the call-out." }
+      ]
+    },
+    "benefitCodes": {
+      "properties": {
+        "code": { "$ref": "#/$defs/benefitCode" },
+        "providedWhen": { "items": { "$ref": "#/$defs/providedWhenCode" } },
+        "exclusions": { "items": { "$ref": "#/$defs/exclusionTermCodes" } },
+        "excesses": { "items": { "$ref": "#/$defs/excessCodes" } }
+      },
+      "if": { "properties": { "code": { "const": "breakdown_assistance" } }, "required": ["code"] },
+      "then": {
+        "properties": {
+          "features": { "items": { "$ref": "#/$defs/breakdownFeature" } },
+          "optionalExtra": {
+            "properties": { "tiers": { "items": { "properties": { "features": { "items": { "$ref": "#/$defs/breakdownFeature" } } } } } }
+          }
+        }
+      },
+      "else": {
+        "description": "Only breakdown has a feature vocabulary in this version.",
+        "not": { "required": ["features"] },
+        "properties": {
+          "optionalExtra": {
+            "properties": { "tiers": { "items": { "not": { "required": ["features"] } } } }
+          }
+        }
+      }
+    },
+    "productCodes": {
+      "description": "Applies the motor vocabularies to every code-bearing field of a product document.",
+      "properties": {
+        "benefits": { "items": { "$ref": "#/$defs/benefitCodes" } },
+        "excesses": { "items": { "$ref": "#/$defs/excessCodes" } },
+        "exclusions": { "items": { "$ref": "#/$defs/exclusionTermCodes" } },
+        "conditions": { "items": { "$ref": "#/$defs/conditionTermCodes" } },
+        "bundles": { "items": { "properties": { "contains": { "items": { "properties": { "code": { "$ref": "#/$defs/benefitCode" } } } } } } }
+      }
+    },
+    "quoteCodes": {
+      "description": "Applies the motor vocabularies to every code-bearing field of a quote document.",
+      "properties": {
+        "benefitOverrides": { "items": { "$ref": "#/$defs/benefitCodes" } },
+        "excesses": { "items": { "$ref": "#/$defs/excessCodes" } },
+        "optionalExtras": { "items": { "properties": { "code": { "$ref": "#/$defs/benefitCode" } } } },
+        "endorsements": { "items": { "$ref": "#/$defs/endorsementTermCodes" } },
+        "sellerRemuneration": { "items": { "properties": { "appliesTo": { "items": { "$ref": "#/$defs/benefitCode" } } } } }
+      }
+    },
+    "motorProduct": {
+      "type": "object",
+      "required": ["coverLevel"],
+      "additionalProperties": false,
+      "properties": {
+        "coverLevel": {
+          "type": "string",
+          "enum": ["comprehensive", "third_party_fire_theft", "third_party_only"]
+        },
+        "vehicleUseOffered": {
+          "description": "Classes of use a customer may select.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "social_domestic_pleasure",
+              "commuting",
+              "business_policyholder",
+              "business_policyholder_and_spouse",
+              "business_all_drivers",
+              "commercial_travelling"
+            ]
+          }
+        },
+        "drivers": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "maxNamedDrivers": { "type": "integer", "minimum": 0 },
+            "anyDriverOption": { "type": "boolean" },
+            "minAge": { "type": "integer", "minimum": 16 },
+            "maxAge": { "type": "integer", "minimum": 16 },
+            "learnerDriversCovered": { "type": "boolean" }
+          }
+        },
+        "noClaimsDiscount": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "maxYearsRecognised": { "type": "integer", "minimum": 0 },
+            "protectionOffered": { "type": "boolean" },
+            "stepBackSummary": { "$ref": "common.schema.json#/$defs/text" },
+            "clauses": { "$ref": "common.schema.json#/$defs/clauseRefs" }
+          }
+        },
+        "telematics": {
+          "type": "string",
+          "enum": ["none", "optional", "required"]
+        },
+        "writeOffSettlement": {
+          "description": "How the car is valued if written off or stolen.",
+          "type": "string",
+          "enum": ["market_value", "lower_of_market_and_declared", "agreed_value", "new_for_old", "not_stated"]
+        },
+        "repairParts": {
+          "type": "string",
+          "enum": ["manufacturer", "manufacturer_or_equivalent", "not_stated"]
+        },
+        "clauses": { "$ref": "common.schema.json#/$defs/clauseRefs" }
+      }
+    },
+    "motorRisk": {
+      "description": "The rating facts a quote was priced on, banded where possible. Contains no names, addresses or registration numbers, but in combination may still identify the customer.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "vehicle": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "make": { "type": "string" },
+            "model": { "type": "string" },
+            "yearOfManufacture": { "type": "integer", "minimum": 1886 },
+            "fuel": {
+              "type": "string",
+              "enum": ["petrol", "diesel", "hybrid", "plug_in_hybrid", "electric", "other"]
+            },
+            "declaredValue": { "$ref": "common.schema.json#/$defs/money" },
+            "modified": { "type": "boolean" },
+            "overnightLocation": {
+              "type": "string",
+              "enum": ["garage", "driveway", "street", "car_park", "other"]
+            }
+          }
+        },
+        "use": { "$ref": "#/$defs/motorProduct/properties/vehicleUseOffered/items" },
+        "annualMileage": { "type": "integer", "minimum": 0 },
+        "noClaimsYears": { "type": "integer", "minimum": 0 },
+        "drivers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["ref", "role"],
+            "additionalProperties": false,
+            "properties": {
+              "ref": {
+                "description": "Document-local label, e.g. d1, that excesses use to point at this driver.",
+                "$ref": "common.schema.json#/$defs/identifier"
+              },
+              "role": { "type": "string", "enum": ["main", "named"] },
+              "ageBand": {
+                "type": "string",
+                "enum": ["17-20", "21-24", "25-29", "30-39", "40-49", "50-59", "60-69", "70-74", "75+"]
+              },
+              "licenceType": {
+                "type": "string",
+                "enum": ["full_uk", "provisional_uk", "eu", "international", "other"]
+              },
+              "licenceHeldBand": {
+                "type": "string",
+                "enum": ["under_1", "1-2", "3-4", "5-9", "10+"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

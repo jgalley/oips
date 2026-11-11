@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jgalley.github.io/oips/schema/v0.0.1/index.schema.json",
+  "title": "OIPS publisher index",
+  "description": "Served at https://{publisher-domain}/.well-known/oips.json. Lists every product document the publisher has on sale or has sold, so crawlers, regulators and agents can discover them without scraping.",
+  "type": "object",
+  "required": ["oips", "documentType", "publisher", "updatedAt", "products"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "format": "uri-reference" },
+    "oips": { "const": "0.0.1" },
+    "documentType": { "const": "index" },
+    "publisher": { "$ref": "common.schema.json#/$defs/organisation" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "products": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "version", "lineOfBusiness", "url", "sha256", "status", "effectiveFrom"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "version": { "$ref": "common.schema.json#/$defs/semver" },
+          "lineOfBusiness": { "type": "string" },
+          "name": { "$ref": "common.schema.json#/$defs/text" },
+          "url": { "type": "string", "format": "uri" },
+          "sha256": { "$ref": "common.schema.json#/$defs/sha256" },
+          "status": {
+            "description": "on_sale: available to new customers. renewal_only: existing customers only. withdrawn: no longer sold, kept so past quotes and policies can still be resolved.",
+            "type": "string",
+            "enum": ["on_sale", "renewal_only", "withdrawn"]
+          },
+          "effectiveFrom": { "type": "string", "format": "date" },
+          "effectiveTo": { "type": ["string", "null"], "format": "date" }
+        }
+      }
+    }
+  }
+}
