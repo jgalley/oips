@@ -31,7 +31,7 @@ A product compared with another product answers "which cover is better?". A quot
 2. **Silence is never ambiguous.** Products should list every vocabulary code. `not_stated` exists so that a missing fact is visibly missing, and tools must never read it as covered.
 3. **Every value traces to the wording.** `clauseRef` names the document, section and page. A regulator or ombudsman can check the JSON against the contract.
 4. **Exact money.** Amounts are decimal strings with an ISO 4217 currency.
-5. **No personal data in public documents.** Index and product documents describe products, never people. A quote document is the customer's personal data: it holds no names, addresses or registrations, bands rating facts (age band, years licensed), allows no publisher extensions, and is shared only with the customer or someone they choose.
+5. **No personal data in public documents.** Index and product documents describe products, never people. A quote document is the customer's personal data: it must not contain names, addresses, registrations or dates of birth in any field, including free text. Its reference is an identifier only, its rating facts are banded (age, years licensed, vehicle value, mileage) so that together they are harder to tie to one person, it allows no publisher extensions, and it is shared only with the customer or someone they choose.
 6. **Self-describing for agents.** Vocabulary codes carry descriptions inside the schema, so an agent reading the schema knows what `driving_other_cars` means without a separate glossary.
 7. **IPID-aligned.** Every IPID heading maps to fields (below), so the JSON can be argued to be the IPID in data form.
 8. **Incentives are visible.** A quote states how the seller is paid (commission, fee, add-on commission, finance commission, and who pays it), so an agent can tell the customer when a ranking may reflect the seller's interest rather than theirs.
@@ -97,7 +97,21 @@ Extras are where like-for-like comparison usually breaks: breakdown alone comes 
 
 ## Versioning of the standard
 
-Semantic versioning. During 0.x anything may change. From 1.0, minor versions only add optional fields and vocabulary codes; consumers must ignore fields and codes they do not recognise (treating an unknown code as `not_stated` for comparison).
+Semantic versioning. During 0.x anything may change. From 1.0, minor versions only add optional fields and vocabulary codes.
+
+The schemas are strict, so a publisher checking its own documents catches typos and unknown codes. Readers must not be: a consumer ignores fields it does not recognise and treats an unknown code as `not_stated`, so a document written to a later version still reads. `tools/validate.js --lenient` validates the way a reader should, against copies of the schemas with code lists opened and unknown fields allowed.
+
+## Conformance
+
+A document conforms when it is valid against its schema and meets these rules, which JSON Schema cannot express. `tools/validate.js` checks each of them.
+
+- **One currency.** Every amount in a document, and in a quote and its product, uses the same currency.
+- **Clauses resolve.** Every clause reference, in a product or a quote, names a document listed in the product.
+- **No duplicates.** Benefit codes, tier ids within an extra, bundle ids, bundle contents, quote extras, quote bundles and benefit overrides each appear once.
+- **Dates in order.** Effective from precedes effective to, a quote is issued before it expires, and cover starts before it ends.
+- **Quotes match their product.** A quote's sha256 equals the hash of the product document's bytes as published. Its extras, tiers and bundles exist in the product, no extra is selected twice (alone, in two tiers or in a bundle), selected extras cost no more than the premium, and an extra is not also overridden to another availability.
+- **One document per version.** Two product documents with the same id and version have the same bytes.
+- **Driver references resolve.** Every driver an excess names is a driver in the quote's rating facts.
 
 ## Scope of v0.0.1
 
@@ -106,6 +120,6 @@ Semantic versioning. During 0.x anything may change. From 1.0, minor versions on
 
 ## Next
 
-1. Fill both examples from two real UK motor policy wordings to find gaps in the vocabulary.
+1. Close the known gaps listed in the README, found by comparing two real UK car insurance quotes.
 2. Add home insurance as a second module to test whether the core holds up.
 3. Write up the regulatory case as a standalone paper for the FCA, with the IPID mapping and a cost estimate for a mid-sized insurer.

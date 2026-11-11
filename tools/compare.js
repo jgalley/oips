@@ -70,7 +70,7 @@ function excess(e) {
 
 export function cell(benefit) {
   if (!benefit) return 'Not stated';
-  const parts = [AVAILABILITY[benefit.availability]];
+  const parts = [AVAILABILITY[benefit.availability] ?? 'Not stated'];
   const offer = benefit.optionalExtra;
   const prices = [offer?.indicativePrice, ...(offer?.tiers ?? []).map((t) => t.indicativePrice)].filter(Boolean);
   if (prices.length) {

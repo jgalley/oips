@@ -22,10 +22,9 @@
     "oips": { "const": "0.0.1" },
     "documentType": { "const": "quote" },
     "reference": {
-      "description": "The publisher's quote reference, as shown to the customer.",
+      "description": "The publisher's quote reference, as shown to the customer. An identifier only: it must not contain a name, registration or other personal data.",
       "type": "string",
-      "minLength": 1,
-      "maxLength": 64
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]{0,63}$"
     },
     "lineOfBusiness": {
       "description": "Must match the product document's lineOfBusiness.",
@@ -159,12 +158,12 @@
       "items": { "$ref": "product.schema.json#/$defs/benefit" }
     },
     "endorsements": {
-      "description": "Special terms added to this policy, e.g. a telematics requirement or a restriction on drivers.",
+      "description": "Special terms added to this policy, e.g. a telematics requirement or a restriction on drivers. Text must not contain names, addresses, registrations, dates of birth or other personal data.",
       "type": "array",
       "items": { "$ref": "common.schema.json#/$defs/term" }
     },
     "assumptions": {
-      "description": "Statements the customer has not explicitly answered that the price relies on.",
+      "description": "Statements the customer has not explicitly answered that the price relies on. Text must not contain names, addresses, registrations, dates of birth or other personal data.",
       "type": "array",
       "items": { "$ref": "common.schema.json#/$defs/text" }
     },

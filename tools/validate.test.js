@@ -250,3 +250,28 @@ test('comparison keeps publisher text from breaking the table or adding markup',
   assert.ok(!header.includes('<script>'));
   assert.match(header, /&lt;script&gt;/);
 });
+
+test('lenient reading accepts a later document with unknown fields and codes', () => {
+  const later = alder();
+  later.oips = '0.0.2';
+  later.newTopLevelField = { anything: true };
+  later.benefits.push({ code: 'flying_car_cover', availability: 'included' });
+  benefit(later, 'courtesy_car').availability = 'conditionally_included';
+  assert.equal(product(later), false);
+  const reader = buildValidators({ lenient: true });
+  assert.ok(reader.product(later), JSON.stringify(reader.product.errors));
+  assert.equal(reader.product({ ...later, documentType: undefined }), false);
+  assert.match(compare([later, birch()]), /\| courtesy car \| Not stated[;| ]/);
+});
+
+test('quotes carry banded rating facts and identifier-only references', () => {
+  const q = aQuote();
+  q.reference = 'Quote for J Smith AB12 CDE';
+  assert.equal(quote(q), false);
+  const r = aQuote();
+  r.risk.motor.vehicle.declaredValue = { amount: '21500', currency: 'GBP' };
+  assert.equal(quote(r), false);
+  const m = aQuote();
+  m.risk.motor.annualMileage = 8000;
+  assert.equal(quote(m), false);
+});

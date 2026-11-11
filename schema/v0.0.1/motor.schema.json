@@ -228,7 +228,7 @@
       }
     },
     "motorRisk": {
-      "description": "The rating facts a quote was priced on, banded where possible. Contains no names, addresses or registration numbers, but in combination may still identify the customer.",
+      "description": "The rating facts a quote was priced on, banded so that together they are harder to tie to one customer. Must not contain names, addresses, registration numbers or dates of birth.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -243,7 +243,11 @@
               "type": "string",
               "enum": ["petrol", "diesel", "hybrid", "plug_in_hybrid", "electric", "other"]
             },
-            "declaredValue": { "$ref": "common.schema.json#/$defs/money" },
+            "declaredValueBand": {
+              "description": "The vehicle value the customer declared, in the quote's currency, as a band.",
+              "type": "string",
+              "enum": ["0-2499", "2500-4999", "5000-7499", "7500-9999", "10000-14999", "15000-19999", "20000-29999", "30000-49999", "50000-74999", "75000+"]
+            },
             "modified": { "type": "boolean" },
             "overnightLocation": {
               "type": "string",
@@ -252,7 +256,11 @@
           }
         },
         "use": { "$ref": "#/$defs/motorProduct/properties/vehicleUseOffered/items" },
-        "annualMileage": { "type": "integer", "minimum": 0 },
+        "annualMileageBand": {
+          "description": "Declared annual mileage, as a band.",
+          "type": "string",
+          "enum": ["0-1000", "1001-2000", "2001-3000", "3001-4000", "4001-5000", "5001-6000", "6001-7000", "7001-8000", "8001-9000", "9001-10000", "10001-11000", "11001-12000", "12001-13000", "13001-14000", "14001-15000", "15001-20000", "20001-30000", "30001+"]
+        },
         "noClaimsYears": { "type": "integer", "minimum": 0 },
         "drivers": {
           "type": "array",

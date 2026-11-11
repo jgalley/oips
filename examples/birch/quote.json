@@ -37,9 +37,9 @@
   ],
   "risk": {
     "motor": {
-      "vehicle": { "make": "Kia", "model": "Niro EV", "yearOfManufacture": 2023, "fuel": "electric", "declaredValue": { "amount": "21500", "currency": "GBP" }, "modified": false, "overnightLocation": "garage" },
+      "vehicle": { "make": "Kia", "model": "Niro EV", "yearOfManufacture": 2023, "fuel": "electric", "declaredValueBand": "20000-29999", "modified": false, "overnightLocation": "garage" },
       "use": "commuting",
-      "annualMileage": 8000,
+      "annualMileageBand": "7001-8000",
       "noClaimsYears": 7,
       "drivers": [
         { "ref": "d1", "role": "main", "ageBand": "40-49", "licenceType": "full_uk", "licenceHeldBand": "10+" },

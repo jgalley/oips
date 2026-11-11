@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Validates OIPS documents against the schema, plus checks JSON Schema cannot express.
-// Usage: node tools/validate.js <file-or-directory>...
+// Usage: node tools/validate.js [--lenient] <file-or-directory>...
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
@@ -13,11 +13,35 @@ const SCHEMA_BASE = 'https://jgalley.github.io/oips/schema/v0.0.1/';
 const motor = JSON.parse(readFileSync(join(SCHEMA_DIR, 'motor.schema.json'), 'utf8'));
 const VOCABULARY = { 'motor.private_car': motor.$defs.benefitCode.anyOf.map((c) => c.const) };
 
-export function buildValidators() {
+// A reader's copy of a schema: unknown fields are allowed and code lists are open, so a
+// document from a later version still reads, with unknown codes treated as not_stated.
+function lenient(node) {
+  if (Array.isArray(node)) return node.map(lenient);
+  if (!node || typeof node !== 'object') return node;
+  const out = {};
+  for (const [k, v] of Object.entries(node)) {
+    if (k === 'additionalProperties' && v === false) continue;
+    if (k === 'oips') {
+      out.oips = { $ref: 'common.schema.json#/$defs/semver' };
+      continue;
+    }
+    if (k === 'enum' && v.every((x) => typeof x === 'string')) continue;
+    if (k === 'anyOf' && v.every((x) => x && typeof x.const === 'string')) {
+      out.type = 'string';
+      continue;
+    }
+    out[k] = lenient(v);
+  }
+  return out;
+}
+
+// Strict by default, for publishers checking their own documents. Pass lenient for readers.
+export function buildValidators({ lenient: forReaders = false } = {}) {
   const ajv = new Ajv2020({ allErrors: true, strict: false });
   addFormats(ajv);
   for (const f of readdirSync(SCHEMA_DIR).filter((n) => n.endsWith('.schema.json'))) {
-    ajv.addSchema(JSON.parse(readFileSync(join(SCHEMA_DIR, f), 'utf8')));
+    const schema = JSON.parse(readFileSync(join(SCHEMA_DIR, f), 'utf8'));
+    ajv.addSchema(forReaders ? lenient(schema) : schema);
   }
   return {
     product: ajv.getSchema(`${SCHEMA_BASE}product.schema.json`),
@@ -197,8 +221,8 @@ export function indexErrors(index, productsByKey) {
   return errors;
 }
 
-export function validateFiles(files) {
-  const validators = buildValidators();
+export function validateFiles(files, options) {
+  const validators = buildValidators(options);
   const results = new Map();
   const parsed = new Map();
   for (const file of files) {
@@ -257,8 +281,9 @@ function collect(paths) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const files = collect(process.argv.slice(2));
-  const results = validateFiles(files);
+  const args = process.argv.slice(2);
+  const files = collect(args.filter((a) => a !== '--lenient'));
+  const results = validateFiles(files, { lenient: args.includes('--lenient') });
   let failed = 0;
   for (const [file, { errors, warnings }] of results) {
     if (errors.length) failed++;

@@ -37,7 +37,8 @@ tools/
 ```
 npm install
 npm test                          # validate examples and run the test suite
-node tools/validate.js <files>    # validate your own documents
+node tools/validate.js <files>    # validate your own documents (strict, for publishers)
+node tools/validate.js --lenient <files>   # read documents as a consumer should
 node tools/compare.js a.json b.json
 node tools/needs.js needs.json productA.json quoteA.json productB.json quoteB.json
 ```
@@ -46,7 +47,7 @@ All insurers, firms and reference numbers in `examples/` are fictional.
 
 ## Known gaps
 
-Comparing two real UK car insurance quotes by hand against this draft exposed these, which v0.0.1 does not yet model:
+v0.0.1 does not yet model:
 
 - **Business use by driver.** Use classes such as "business use" need to say which drivers they cover, not just that they apply.
 - **Broker and insurer.** When a broker sells the policy, the quote must name the insurer that pays claims as well as the seller.
