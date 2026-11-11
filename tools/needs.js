@@ -5,17 +5,11 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { money } from './compare.js';
-import { sha256 } from './validate.js';
+import { sha256, SCALE, toUnits } from './validate.js';
 
 // Matches the schema's maxItems, so trying every subset of bundles stays fast.
 export const MAX_BUNDLES = 16;
 
-// Exact arithmetic on decimal strings, in units of 1/10000.
-const SCALE = 10000n;
-const toUnits = (amount) => {
-  const [whole, fraction = ''] = amount.split('.');
-  return BigInt(whole) * SCALE + BigInt(fraction.padEnd(4, '0'));
-};
 const fromUnits = (units, currency) => {
   if (units < 0n) throw new RangeError('amount is negative');
   const whole = units / SCALE;

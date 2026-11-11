@@ -34,12 +34,12 @@
     "issuedAt": { "type": "string", "format": "date-time" },
     "validUntil": { "type": "string", "format": "date-time" },
     "product": {
-      "description": "The exact product document this quote is on. sha256 is of the product document's bytes as published, so the customer can prove which terms they were offered.",
+      "description": "The exact product document this quote is on. sha256 is of the product document's bytes as published, so anyone can check which product version the quote refers to. Quotes are not yet signed, so the hash does not prove the quote itself was issued as shown.",
       "type": "object",
       "required": ["id", "version", "url", "sha256"],
       "additionalProperties": false,
       "properties": {
-        "id": { "type": "string" },
+        "id": { "$ref": "common.schema.json#/$defs/productId" },
         "version": { "$ref": "common.schema.json#/$defs/semver" },
         "url": { "type": "string", "format": "uri" },
         "sha256": { "$ref": "common.schema.json#/$defs/sha256" }

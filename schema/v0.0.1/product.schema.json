@@ -30,12 +30,7 @@
       "const": "0.0.1"
     },
     "documentType": { "const": "product" },
-    "id": {
-      "description": "Globally unique product id: the publisher's domain reversed, then a product slug. Stable across versions.",
-      "type": "string",
-      "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)+$",
-      "examples": ["uk.co.example-insurer.motor.comprehensive-plus"]
-    },
+    "id": { "$ref": "common.schema.json#/$defs/productId" },
     "version": {
       "description": "Version of this product's terms. Any change to cover, limits or wording bumps it. Quotes pin to a version.",
       "$ref": "common.schema.json#/$defs/semver"

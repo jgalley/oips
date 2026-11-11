@@ -40,6 +40,12 @@
         }
       ]
     },
+    "productId": {
+      "description": "Globally unique product id: the publisher's domain reversed, then a product slug. Stable across versions.",
+      "type": "string",
+      "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)+$",
+      "examples": ["uk.co.example-insurer.motor.comprehensive-plus"]
+    },
     "identifier": {
       "description": "Stable, publisher-assigned identifier. Lowercase letters, digits, dots, hyphens and underscores.",
       "type": "string",

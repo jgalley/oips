@@ -174,3 +174,59 @@ test('comparison shows the facts that decide it', () => {
   assert.match(table, /breakdown assistance \| Extra \(from £39\.99\); Roadside \[roadside assistance\]; Roadside and National Recovery \[roadside assistance, national recovery\]/);
   assert.doesNotMatch(table, /undefined/);
 });
+
+test('validator flags repeated tier ids and repeated benefit overrides', () => {
+  const d = alder();
+  const tiers = benefit(d, 'breakdown_assistance').optionalExtra.tiers;
+  tiers.push({ ...tiers[0] });
+  assert.match(semanticErrors(d).errors.join('\n'), /tier "[^"]+" appears more than once/);
+  const q = aQuote();
+  q.benefitOverrides = [{ code: 'courtesy_car', availability: 'included' }, { code: 'courtesy_car', availability: 'not_included' }];
+  assert.ok(quote(q), JSON.stringify(quote.errors));
+  assert.match(semanticErrors(q).errors.join('\n'), /benefitOverrides\[1\] "courtesy_car" appears more than once/);
+});
+
+test('validator flags a quote whose selected extras exceed the premium', () => {
+  const q = aQuote();
+  q.optionalExtras[0].selected = true;
+  q.premium.annual.amount = '1.00';
+  q.premium.tax.amount = '0.10';
+  assert.match(quoteErrors(q, localProducts()).join('\n'), /cost more than premium\.annual/);
+});
+
+test('validator flags quote clauses that point at no product document', () => {
+  const q = aQuote();
+  q.endorsements[0].clauses = [{ document: 'no-such-doc', section: '1' }];
+  assert.ok(quote(q), JSON.stringify(quote.errors));
+  assert.match(quoteErrors(q, localProducts()).join('\n'), /unknown product document "no-such-doc"/);
+});
+
+test('validator flags an extra offered but overridden to included', () => {
+  const q = aQuote();
+  q.benefitOverrides = [{ code: q.optionalExtras[0].code, availability: 'included' }];
+  assert.match(quoteErrors(q, localProducts()).join('\n'), /offered as an optional extra but overridden to included/);
+});
+
+test('validator rejects two different product files with the same id and version', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'oips-'));
+  const copy = alder();
+  copy.name = { en: 'Altered' };
+  writeFileSync(join(dir, 'altered.json'), JSON.stringify(copy));
+  const results = validateFiles([path('alder/product-comprehensive.json'), join(dir, 'altered.json')]);
+  for (const r of results.values()) assert.match(r.errors.join('\n'), /also published, with different bytes/);
+});
+
+test('validator warns when a quote is checked without its product', () => {
+  const [r] = validateFiles([path('alder/quote.json')]).values();
+  assert.deepEqual(r.errors, []);
+  assert.match(r.warnings.join('\n'), /not in this run, so its hash, extras and bundles were not checked/);
+});
+
+test('schema applies the product id pattern to quotes and index entries', () => {
+  const q = aQuote();
+  q.product.id = 'Not An Id';
+  assert.equal(quote(q), false);
+  const i = load('alder/well-known-oips.json');
+  i.products[0].id = 'Not An Id';
+  assert.equal(index(i), false);
+});

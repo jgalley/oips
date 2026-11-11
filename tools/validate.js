@@ -26,6 +26,13 @@ export function buildValidators() {
   };
 }
 
+// Exact arithmetic on decimal strings, in units of 1/10000.
+export const SCALE = 10000n;
+export const toUnits = (amount) => {
+  const [whole, fraction = ''] = amount.split('.');
+  return BigInt(whole) * SCALE + BigInt(fraction.padEnd(4, '0'));
+};
+
 export function sha256(path) {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
@@ -72,6 +79,13 @@ export function semanticErrors(doc) {
     if (later(doc.effective.from, doc.effective.to)) errors.push('effective.from is after effective.to');
     const d = doc.motor?.drivers;
     if (d?.minAge != null && d?.maxAge != null && d.minAge > d.maxAge) errors.push('motor.drivers.minAge is above maxAge');
+    doc.benefits.forEach((b) => {
+      const tierIds = new Set();
+      (b.optionalExtra?.tiers ?? []).forEach((t) => {
+        if (tierIds.has(t.id)) errors.push(`benefit "${b.code}" tier "${t.id}" appears more than once`);
+        tierIds.add(t.id);
+      });
+    });
     const bundleIds = new Set();
     (doc.bundles ?? []).forEach((b, i) => {
       if (bundleIds.has(b.id)) errors.push(`bundles[${i}] id "${b.id}" appears more than once`);
@@ -89,6 +103,11 @@ export function semanticErrors(doc) {
   if (doc.documentType === 'quote') {
     if (later(doc.issuedAt, doc.validUntil)) errors.push('issuedAt is after validUntil');
     if (doc.cover.startDate >= doc.cover.endDate) errors.push('cover.startDate is not before endDate');
+    const overridden = new Set();
+    (doc.benefitOverrides ?? []).forEach((b, i) => {
+      if (overridden.has(b.code)) errors.push(`benefitOverrides[${i}] "${b.code}" appears more than once`);
+      overridden.add(b.code);
+    });
     const refs = new Set((doc.risk?.motor?.drivers ?? []).map((x) => x.ref));
     walk(doc, "$", (n, path) => {
       if (Array.isArray(n.drivers) && "amount" in n) n.drivers.forEach((r) => {
@@ -145,6 +164,22 @@ export function quoteErrors(quote, productsByKey) {
   for (const [code, from] of bought) {
     if (from.length > 1) errors.push(`"${code}" is selected more than once (${from.join(', ')})`);
   }
+  const selected = [
+    ...(quote.optionalExtras ?? []).filter((x) => x.selected),
+    ...(quote.bundles ?? []).filter((b) => b.selected),
+  ].reduce((sum, x) => sum + toUnits(x.price.amount), 0n);
+  if (selected > toUnits(quote.premium.annual.amount)) errors.push('selected extras and bundles cost more than premium.annual');
+  (quote.benefitOverrides ?? []).forEach((b) => {
+    if (b.availability !== 'optional_extra' && (quote.optionalExtras ?? []).some((x) => x.code === b.code)) {
+      errors.push(`"${b.code}" is offered as an optional extra but overridden to ${b.availability}`);
+    }
+  });
+  const docIds = new Set(p.documents.map((d) => d.id));
+  walk(quote, '$', (n, path) => {
+    (Array.isArray(n.clauses) ? n.clauses : []).forEach((c, i) => {
+      if (!docIds.has(c.document)) errors.push(`${path}.clauses[${i}] refers to unknown product document "${c.document}"`);
+    });
+  });
   const [pc] = currencies(p);
   const [qc] = currencies(quote);
   if (pc && qc && pc !== qc) errors.push(`quote currency ${qc} differs from product currency ${pc}`);
@@ -183,24 +218,42 @@ export function validateFiles(files) {
       results.set(file, { errors: validate.errors.map((e) => `${e.instancePath || '$'} ${e.message}`), warnings: [] });
     } else {
       results.set(file, semanticErrors(doc));
-      if (doc.documentType === 'product') productsByKey.set(`${doc.id}@${doc.version}`, { file, doc });
+      if (doc.documentType === 'product') {
+        const key = `${doc.id}@${doc.version}`;
+        const earlier = productsByKey.get(key);
+        if (!earlier) productsByKey.set(key, { file, doc });
+        else if (earlier.file !== file && sha256(earlier.file) !== sha256(file)) {
+          const clash = `${key} is also published, with different bytes, in `;
+          results.get(file).errors.push(clash + earlier.file);
+          results.get(earlier.file).errors.push(clash + file);
+        }
+      }
     }
   }
   for (const [file, doc] of parsed) {
     const r = results.get(file);
     if (r.errors.length) continue;
-    if (doc.documentType === 'quote') r.errors.push(...quoteErrors(doc, productsByKey));
+    if (doc.documentType === 'quote') {
+      if (productsByKey.has(`${doc.product.id}@${doc.product.version}`)) r.errors.push(...quoteErrors(doc, productsByKey));
+      else r.warnings.push(`product ${doc.product.id}@${doc.product.version} not in this run, so its hash, extras and bundles were not checked`);
+    }
     if (doc.documentType === 'index') r.errors.push(...indexErrors(doc, productsByKey));
   }
   return results;
 }
 
 function collect(paths) {
-  return paths.flatMap((p) =>
-    statSync(p).isDirectory()
+  return paths.flatMap((p) => {
+    try {
+      statSync(p);
+    } catch {
+      console.error(`not found: ${p}`);
+      process.exit(1);
+    }
+    return statSync(p).isDirectory()
       ? collect(readdirSync(p).map((n) => join(p, n)))
-      : p.endsWith('.json') ? [p] : [],
-  );
+      : p.endsWith('.json') ? [p] : [];
+  });
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

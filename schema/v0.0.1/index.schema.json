@@ -19,7 +19,7 @@
         "required": ["id", "version", "lineOfBusiness", "url", "sha256", "status", "effectiveFrom"],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string" },
+          "id": { "$ref": "common.schema.json#/$defs/productId" },
           "version": { "$ref": "common.schema.json#/$defs/semver" },
           "lineOfBusiness": { "type": "string" },
           "name": { "$ref": "common.schema.json#/$defs/text" },
