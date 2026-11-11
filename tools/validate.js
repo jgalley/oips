@@ -86,6 +86,10 @@ function currencies(doc) {
 // True when timestamp or date a is later than b. Parses, so UTC offsets are respected.
 const later = (a, b) => a != null && b != null && Date.parse(a) > Date.parse(b);
 
+// An included benefit capped at zero is not cover, and must not count as meeting a need.
+const zeroLimit = (b) => (b.availability === 'included' && (b.limits ?? []).some((l) => l.amount && toUnits(l.amount.amount) === 0n)
+  ? `benefit "${b.code}" is included with a limit of zero; mark it not_included instead` : null);
+
 // Rules that need the whole document. Call only on schema-valid documents.
 export function semanticErrors(doc) {
   const errors = [];
@@ -111,9 +115,8 @@ export function semanticErrors(doc) {
     const d = doc.motor?.drivers;
     if (d?.minAge != null && d?.maxAge != null && d.minAge > d.maxAge) errors.push('motor.drivers.minAge is above maxAge');
     doc.benefits.forEach((b) => {
-      if (b.availability === 'included' && (b.limits ?? []).some((l) => l.amount && toUnits(l.amount.amount) === 0n)) {
-        errors.push(`benefit "${b.code}" is included with a limit of zero; mark it not_included instead`);
-      }
+      const zero = zeroLimit(b);
+      if (zero) errors.push(zero);
       const tierIds = new Set();
       (b.optionalExtra?.tiers ?? []).forEach((t) => {
         if (tierIds.has(t.id)) errors.push(`benefit "${b.code}" tier "${t.id}" appears more than once`);
@@ -139,6 +142,8 @@ export function semanticErrors(doc) {
     if (doc.cover.startDate >= doc.cover.endDate) errors.push('cover.startDate is not before endDate');
     const overridden = new Set();
     (doc.benefitOverrides ?? []).forEach((b, i) => {
+      const zero = zeroLimit(b);
+      if (zero) errors.push(`benefitOverrides[${i}] ${zero}`);
       if (overridden.has(b.code)) errors.push(`benefitOverrides[${i}] "${b.code}" appears more than once`);
       overridden.add(b.code);
     });
@@ -204,8 +209,14 @@ export function quoteErrors(quote, productsByKey) {
   ].reduce((sum, x) => sum + toUnits(x.price.amount), 0n);
   if (selected > toUnits(quote.premium.annual.amount)) errors.push('selected extras and bundles cost more than premium.annual');
   (quote.benefitOverrides ?? []).forEach((b) => {
-    if (b.availability !== 'optional_extra' && (quote.optionalExtras ?? []).some((x) => x.code === b.code)) {
+    if (b.availability === 'optional_extra') return;
+    if ((quote.optionalExtras ?? []).some((x) => x.code === b.code)) {
       errors.push(`"${b.code}" is offered as an optional extra but overridden to ${b.availability}`);
+    }
+    for (const q of quote.bundles ?? []) {
+      if ((productBundles.get(q.id)?.contains ?? []).some((c) => c.code === b.code)) {
+        errors.push(`"${b.code}" is in offered bundle "${q.id}" but overridden to ${b.availability}`);
+      }
     }
   });
   const docIds = new Set(p.documents.map((d) => d.id));

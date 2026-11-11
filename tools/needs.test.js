@@ -218,3 +218,37 @@ test('needs excess leaves out excesses that apply only to named drivers', () => 
   q.excesses.push({ type: 'compulsory', amount: { amount: '1000', currency: 'GBP' }, drivers: ['d2'], appliesTo: ['accidental_damage'] });
   assert.equal(priceForNeeds(needs, birch(), q).excess.amount, '500.00');
 });
+
+test('needs excess reads not stated, not zero, when no main excess is given', () => {
+  const q = load('birch/quote.json');
+  q.excesses = q.excesses.filter((e) => e.type === 'additional');
+  const r = priceForNeeds(needs, birch(), q);
+  assert.equal(r.excess, null);
+  assert.match(report([r]), /accidental damage excess not stated/);
+});
+
+test('validator catches overrides that empty or contradict offered cover', () => {
+  const q = load('alder/quote.json');
+  q.benefitOverrides = [{ code: 'courtesy_car', availability: 'included', limits: [{ amount: { amount: '0', currency: 'GBP' }, basis: 'per_claim' }] }];
+  assert.ok(quote(q), JSON.stringify(quote.errors));
+  assert.match(semanticErrors(q).errors.join('\n'), /benefitOverrides\[0\] benefit "courtesy_car" is included with a limit of zero/);
+  const b = load('alder/quote.json');
+  b.benefitOverrides = [{ code: 'key_replacement', availability: 'not_included' }];
+  assert.match(quoteErrors(b, products()).join('\n'), /"key_replacement" is in offered bundle "plus-pack" but overridden to not_included/);
+});
+
+test('needs command line refuses a pair that fails validation together', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const { mkdtempSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const dir = mkdtempSync(join(tmpdir(), 'oips-'));
+  const q = load('alder/quote.json');
+  q.bundles[0].selected = true;
+  q.optionalExtras.find((x) => x.code === 'motor_legal_expenses').selected = true;
+  writeFileSync(join(dir, 'quote.json'), JSON.stringify(q));
+  const run = spawnSync(process.execPath, [new URL('needs.js', import.meta.url).pathname,
+    new URL('fixtures/needs.json', import.meta.url).pathname, path('alder/product-comprehensive.json'), join(dir, 'quote.json')], { encoding: 'utf8' });
+  assert.equal(run.status, 1);
+  assert.match(run.stderr, /selected more than once/);
+});

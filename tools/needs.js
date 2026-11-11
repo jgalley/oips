@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { money } from './compare.js';
-import { sha256, SCALE, toUnits } from './validate.js';
+import { sha256, SCALE, toUnits, validateFiles } from './validate.js';
 
 // Matches the schema's maxItems, so trying every subset of bundles stays fast.
 export const MAX_BUNDLES = 16;
@@ -110,15 +110,15 @@ export function priceForNeeds(rawNeeds, product, quote) {
 
   // The fixed excess on an accidental damage claim: compulsory plus voluntary, before any
   // circumstance-specific additional excess. Shown beside the price so a higher excess cannot hide.
-  const excess = (quote.excesses ?? [])
+  const excessTerms = (quote.excesses ?? [])
     .filter((e) => (e.type === 'compulsory' || e.type === 'voluntary') && !e.drivers
-      && (!e.appliesTo || e.appliesTo.includes('accidental_damage')))
-    .reduce((sum, e) => sum + toUnits(e.amount.amount), 0n);
+      && (!e.appliesTo || e.appliesTo.includes('accidental_damage')));
+  const excess = excessTerms.reduce((sum, e) => sum + toUnits(e.amount.amount), 0n);
 
   return {
     product: product.id,
     headline: quote.premium.annual,
-    excess: fromUnits(excess, currency),
+    excess: excessTerms.length ? fromUnits(excess, currency) : null,
     base: fromUnits(base, currency),
     included: included.map((n) => n.code),
     extras: best.picks.map((p) => ({ item: p.label, price: fromUnits(p.cost, currency) })),
@@ -137,7 +137,7 @@ export function report(results) {
   const ranked = [...results].sort((a, b) => a.unmet.length - b.unmet.length || byTotal(a, b));
   return ranked.map((r, i) => [
     `${i + 1}. ${r.product}: ${r.unmet.length ? 'does not meet every need' : money(r.total)}`,
-    `   headline ${money(r.headline)}, without extras ${money(r.base)}, accidental damage excess ${money(r.excess)}`,
+    `   headline ${money(r.headline)}, without extras ${money(r.base)}, accidental damage excess ${r.excess ? money(r.excess) : 'not stated'}`,
     ...(r.included.length ? [`   already included: ${r.included.join(', ')}`] : []),
     ...r.extras.map((e) => `   + ${e.item} ${money(e.price)}`),
     ...(r.unmet.length ? [`   not available: ${r.unmet.join('; ')}`] : []),
@@ -158,6 +158,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     if (sha256(pairs[i]) !== quote.product.sha256) {
       console.error(`${pairs[i + 1]}: product.sha256 does not match ${pairs[i]}`);
       process.exit(1);
+    }
+    // Pricing is only meaningful for a pair that conforms together, not just one by one.
+    for (const [file, { errors }] of validateFiles([pairs[i], pairs[i + 1]])) {
+      for (const e of errors) console.error(`${file}: ${e}`);
+      if (errors.length) process.exit(1);
     }
     results.push(priceForNeeds(needs, read(pairs[i]), quote));
   }
