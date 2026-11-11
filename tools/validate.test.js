@@ -275,3 +275,31 @@ test('quotes carry banded rating facts and identifier-only references', () => {
   m.risk.motor.annualMileage = 8000;
   assert.equal(quote(m), false);
 });
+
+test('index schema and checks reject malformed entries', () => {
+  const entry = (mutate) => { const i = load('alder/well-known-oips.json'); mutate(i.products[0]); return i; };
+  assert.equal(index(entry((e) => { e.status = 'discontinued'; })), false);
+  assert.equal(index(entry((e) => { delete e.sha256; })), false);
+  assert.equal(index(entry((e) => { e.url = 'not a url'; })), false);
+  assert.equal(index(entry((e) => { e.extra = true; })), false);
+  const backwards = entry((e) => { e.effectiveTo = '2026-01-01'; });
+  assert.ok(index(backwards));
+  assert.match(indexErrors(backwards, localProducts()).join('\n'), /effectiveFrom is after effectiveTo/);
+});
+
+test('command-line tools exit non-zero on bad input', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const run = (tool, ...args) => spawnSync(process.execPath, [new URL(tool, import.meta.url).pathname, ...args], { encoding: 'utf8' });
+  assert.equal(run('validate.js', path('alder')).status, 0);
+  const missing = run('validate.js', 'no-such-file.json');
+  assert.equal(missing.status, 1);
+  assert.equal(missing.stderr.trim(), 'not found: no-such-file.json');
+  const dir = mkdtempSync(join(tmpdir(), 'oips-'));
+  writeFileSync(join(dir, 'broken.json'), '{');
+  assert.equal(run('validate.js', dir).status, 1);
+  assert.equal(run('validate.js', mkdtempSync(join(tmpdir(), 'oips-'))).status, 1);
+  const fixture = new URL('fixtures/needs.json', import.meta.url).pathname;
+  assert.equal(run('needs.js', fixture, path('alder/product-comprehensive.json')).status, 2);
+  assert.equal(run('needs.js', fixture, path('birch/product-comprehensive.json'), path('alder/quote.json')).status, 1);
+  assert.equal(run('needs.js', fixture, path('alder/product-comprehensive.json'), path('alder/quote.json')).status, 0);
+});
