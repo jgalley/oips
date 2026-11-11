@@ -195,3 +195,26 @@ test('validator rejects an included benefit with a zero limit', () => {
   u.benefits.find((x) => x.availability === 'included').limits[0].units.value = 1;
   assert.equal(product(u), true, JSON.stringify(product.errors));
 });
+
+test('needs pricing never picks two bundles that share an extra', () => {
+  const p = alder();
+  const q = load('alder/quote.json');
+  p.bundles = [
+    { id: 'a', name: 'A', contains: [{ code: 'motor_legal_expenses' }, { code: 'key_replacement' }] },
+    { id: 'b', name: 'B', contains: [{ code: 'key_replacement' }, { code: 'breakdown_assistance', tier: 'national-home' }] },
+  ];
+  q.bundles = [
+    { id: 'a', price: { amount: '1.00', currency: 'GBP' }, selected: false },
+    { id: 'b', price: { amount: '1.00', currency: 'GBP' }, selected: false },
+  ];
+  const r = priceForNeeds([{ code: 'motor_legal_expenses' }, { code: 'breakdown_assistance', features: ['home_start'] }], p, q);
+  const bought = r.extras.map((e) => e.item);
+  assert.ok(!(bought.includes('bundle a') && bought.includes('bundle b')), bought.join(', '));
+  assert.deepEqual(r.unmet, []);
+});
+
+test('needs excess leaves out excesses that apply only to named drivers', () => {
+  const q = load('birch/quote.json');
+  q.excesses.push({ type: 'compulsory', amount: { amount: '1000', currency: 'GBP' }, drivers: ['d2'], appliesTo: ['accidental_damage'] });
+  assert.equal(priceForNeeds(needs, birch(), q).excess.amount, '500.00');
+});

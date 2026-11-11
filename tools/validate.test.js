@@ -262,6 +262,10 @@ test('lenient reading accepts a later document with unknown fields and codes', (
   assert.ok(reader.product(later), JSON.stringify(reader.product.errors));
   assert.equal(reader.product({ ...later, documentType: undefined }), false);
   assert.match(compare([later, birch()]), /\| courtesy car \| Not stated[;| ]/);
+  const featured = alder();
+  benefit(featured, 'fire').features = ['roadside_assistance'];
+  assert.equal(product(featured), false);
+  assert.ok(reader.product(featured), JSON.stringify(reader.product.errors));
 });
 
 test('quotes carry banded rating facts and identifier-only references', () => {

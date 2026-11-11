@@ -112,6 +112,8 @@ A document conforms when it is valid against its schema and meets these rules, w
 - **Quotes match their product.** A quote's sha256 equals the hash of the product document's bytes as published. Its extras, tiers and bundles exist in the product, no extra is selected twice (alone, in two tiers or in a bundle), selected extras cost no more than the premium, and an extra is not also overridden to another availability.
 - **One document per version.** Two product documents with the same id and version have the same bytes.
 - **Driver references resolve.** Every driver an excess names is a driver in the quote's rating facts.
+- **Included cover is real.** An included benefit has no zero limit, and a product's minimum driver age is not above its maximum.
+- **Index entries match.** An index entry's sha256 equals the hash of the product document it lists, and a quote's line of business matches its product's.
 
 ## Scope of v0.0.1
 

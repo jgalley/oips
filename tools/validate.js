@@ -20,6 +20,13 @@ function lenient(node) {
   if (!node || typeof node !== 'object') return node;
   const out = {};
   for (const [k, v] of Object.entries(node)) {
+    // Conditions keep their code lists, so an if keyed on a code still selects what it did.
+    if (k === 'if') {
+      out.if = v;
+      continue;
+    }
+    // A later version may allow what this one forbids, so prohibitions do not apply to readers.
+    if (k === 'not') continue;
     if (k === 'additionalProperties' && v === false) continue;
     if (k === 'oips') {
       out.oips = { $ref: 'common.schema.json#/$defs/semver' };

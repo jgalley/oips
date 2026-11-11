@@ -86,6 +86,9 @@ export function priceForNeeds(rawNeeds, product, quote) {
   let best = null;
   for (let mask = 0; mask < 2 ** bundles.length; mask++) {
     const chosen = bundles.filter((_, i) => mask & (1 << i));
+    // Two bundles that share an extra would buy it twice, which a valid quote cannot select.
+    const codes = chosen.flatMap((b) => b.contains.map((c) => c.code));
+    if (new Set(codes).size < codes.length) continue;
     const picks = chosen.map(({ label, cost }) => ({ label, cost }));
     const unmet = [];
     for (const need of open) {
@@ -108,7 +111,8 @@ export function priceForNeeds(rawNeeds, product, quote) {
   // The fixed excess on an accidental damage claim: compulsory plus voluntary, before any
   // circumstance-specific additional excess. Shown beside the price so a higher excess cannot hide.
   const excess = (quote.excesses ?? [])
-    .filter((e) => (e.type === 'compulsory' || e.type === 'voluntary') && (!e.appliesTo || e.appliesTo.includes('accidental_damage')))
+    .filter((e) => (e.type === 'compulsory' || e.type === 'voluntary') && !e.drivers
+      && (!e.appliesTo || e.appliesTo.includes('accidental_damage')))
     .reduce((sum, e) => sum + toUnits(e.amount.amount), 0n);
 
   return {
