@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { buildValidators, semanticErrors, quoteErrors } from './validate.js';
-import { priceForNeeds } from './needs.js';
+import { priceForNeeds, report, MAX_BUNDLES } from './needs.js';
 
 const { product, quote } = buildValidators();
 const path = (p) => new URL(`../examples/${p}`, import.meta.url).pathname;
@@ -129,4 +129,51 @@ test('needs pricing honours quote benefit overrides', () => {
   const r = priceForNeeds([{ code: 'courtesy_car' }], birch(), q);
   assert.deepEqual(r.included, ['courtesy_car']);
   assert.equal(r.total.amount, '529.00');
+});
+
+test('needs pricing refuses a quote paired with a different product', () => {
+  assert.throws(() => priceForNeeds(needs, birch(), load('alder/quote.json')), /is for example\.alder\.motor\.comprehensive@3\.1\.0, not example\.birch/);
+});
+
+test('schema rejects a quote that leaves tax out of its premium', () => {
+  const q = load('alder/quote.json');
+  q.premium.taxIncluded = false;
+  assert.equal(quote(q), false);
+  assert.throws(() => priceForNeeds(needs, alder(), q), /does not include tax/);
+});
+
+test('ranking refuses to compare quotes in different currencies', () => {
+  const a = priceForNeeds(needs, alder(), load('alder/quote.json'));
+  const b = priceForNeeds(needs, birch(), load('birch/quote.json'));
+  b.total = { amount: '1.00', currency: 'EUR' };
+  assert.throws(() => report([a, b]), /different currencies: GBP, EUR/);
+});
+
+test('needs pricing never buys an extra both in a bundle and on its own', () => {
+  const q = load('alder/quote.json');
+  q.bundles[0].price.amount = '20.00';
+  const want = [{ code: 'motor_legal_expenses' }, { code: 'breakdown_assistance', features: ['home_start'] }];
+  const r = priceForNeeds(want, alder(), q);
+  const bought = r.extras.map((e) => e.item);
+  assert.ok(!(bought.includes('bundle plus-pack') && bought.some((i) => i.startsWith('breakdown_assistance'))), bought.join(', '));
+  assert.deepEqual(r.unmet, []);
+});
+
+test('needs pricing caps bundles and skips bundles that meet no need', () => {
+  const p = alder();
+  const q = load('alder/quote.json');
+  for (let i = 0; i < MAX_BUNDLES; i++) {
+    const id = `noise-${i}`;
+    p.bundles.push({ id, name: 'Noise', contains: [{ code: 'key_replacement' }, { code: 'motor_legal_expenses' }] });
+    q.bundles.push({ id, price: { amount: '1.00', currency: 'GBP' }, selected: false });
+  }
+  assert.throws(() => priceForNeeds(needs, p, q), /more than 16 bundles/);
+  p.bundles.splice(1, 1);
+  q.bundles.splice(1, 1);
+  const started = Date.now();
+  const r = priceForNeeds([{ code: 'breakdown_assistance', features: ['home_start'] }], p, q);
+  assert.ok(Date.now() - started < 1000);
+  assert.deepEqual(r.unmet, []);
+  assert.equal(product(p), true);
+  assert.equal(quote(q), true);
 });

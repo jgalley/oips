@@ -104,6 +104,7 @@
     },
     "bundles": {
       "type": "array",
+      "maxItems": 16,
       "items": { "$ref": "#/$defs/bundle" }
     },
     "excessStacking": {

@@ -5,6 +5,10 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { money } from './compare.js';
+import { sha256 } from './validate.js';
+
+// Matches the schema's maxItems, so trying every subset of bundles stays fast.
+export const MAX_BUNDLES = 16;
 
 // Exact arithmetic on decimal strings, in units of 1/10000.
 const SCALE = 10000n;
@@ -46,6 +50,11 @@ function includedBenefit(product, quote, code) {
 // Expects a quote that passes tools/validate.js against this product: in particular, no selected
 // extra also sits inside a selected bundle, so subtracting every selected item gives the base price.
 export function priceForNeeds(rawNeeds, product, quote) {
+  const pin = `${quote.product.id}@${quote.product.version}`;
+  if (pin !== `${product.id}@${product.version}`) {
+    throw new Error(`quote ${quote.reference} is for ${pin}, not ${product.id}@${product.version}`);
+  }
+  if (quote.premium.taxIncluded !== true) throw new RangeError(`quote ${quote.reference} does not include tax in its premium`);
   const needs = mergeNeeds(rawNeeds);
   const currency = quote.premium.annual.currency;
   const selectedCost = [
@@ -66,23 +75,33 @@ export function priceForNeeds(rawNeeds, product, quote) {
   const extrasFor = (need) => (quote.optionalExtras ?? [])
     .filter((x) => x.code === need.code && hasFeatures(featuresOf(product, x.code, x.tier), need))
     .map((x) => ({ label: x.tier ? `${x.code} (${x.tier})` : x.code, cost: toUnits(x.price.amount) }));
+  if ((quote.bundles ?? []).length > MAX_BUNDLES) {
+    throw new RangeError(`quote ${quote.reference} offers more than ${MAX_BUNDLES} bundles`);
+  }
+  const bundleMeets = (bundle, need) => bundle.contains.some(
+    (c) => c.code === need.code && hasFeatures(featuresOf(product, c.code, c.tier), need),
+  );
+  // A bundle that meets no open need can only add cost, so it is never worth trying.
   const bundles = (quote.bundles ?? []).map((q) => ({
     label: `bundle ${q.id}`,
     cost: toUnits(q.price.amount),
     contains: product.bundles?.find((b) => b.id === q.id)?.contains ?? [],
-  }));
-  const bundleMeets = (bundle, need) => bundle.contains.some(
-    (c) => c.code === need.code && hasFeatures(featuresOf(product, c.code, c.tier), need),
-  );
+  })).filter((b) => open.some((need) => bundleMeets(b, need)));
 
-  // Bundles are few, so try every subset and buy the cheapest single extra for each need left.
+  // Try every subset of bundles and buy the cheapest single extra for each need left.
   let best = null;
-  for (let mask = 0; mask < 1 << bundles.length; mask++) {
+  for (let mask = 0; mask < 2 ** bundles.length; mask++) {
     const chosen = bundles.filter((_, i) => mask & (1 << i));
     const picks = chosen.map(({ label, cost }) => ({ label, cost }));
     const unmet = [];
     for (const need of open) {
       if (chosen.some((b) => bundleMeets(b, need))) continue;
+      // A chosen bundle already carries this extra at a tier that falls short, and buying a
+      // second tier alongside it would buy the extra twice, so this subset cannot meet the need.
+      if (chosen.some((b) => b.contains.some((c) => c.code === need.code))) {
+        unmet.push(need);
+        continue;
+      }
       const cheapest = extrasFor(need).sort((a, b) => (a.cost < b.cost ? -1 : a.cost > b.cost ? 1 : 0))[0];
       if (cheapest) picks.push(cheapest);
       else unmet.push(need);
@@ -104,6 +123,8 @@ export function priceForNeeds(rawNeeds, product, quote) {
 }
 
 export function report(results) {
+  const found = new Set(results.map((r) => r.total.currency));
+  if (found.size > 1) throw new RangeError(`cannot rank quotes in different currencies: ${[...found].join(', ')}`);
   const byTotal = (a, b) => {
     const d = toUnits(a.total.amount) - toUnits(b.total.amount);
     return d > 0n ? 1 : d < 0n ? -1 : 0;
@@ -123,6 +144,17 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const read = (f) => JSON.parse(readFileSync(f, 'utf8'));
   const { needs } = read(needsFile);
   const results = [];
-  for (let i = 0; i < pairs.length; i += 2) results.push(priceForNeeds(needs, read(pairs[i]), read(pairs[i + 1])));
+  if (pairs.length === 0 || pairs.length % 2) {
+    console.error('usage: node tools/needs.js <needs.json> <product.json> <quote.json> [<product.json> <quote.json>...]');
+    process.exit(2);
+  }
+  for (let i = 0; i < pairs.length; i += 2) {
+    const quote = read(pairs[i + 1]);
+    if (sha256(pairs[i]) !== quote.product.sha256) {
+      console.error(`${pairs[i + 1]}: product.sha256 does not match ${pairs[i]}`);
+      process.exit(1);
+    }
+    results.push(priceForNeeds(needs, read(pairs[i]), quote));
+  }
   console.log(report(results));
 }

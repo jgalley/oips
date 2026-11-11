@@ -88,7 +88,7 @@
           "description": "Total price to pay in full for the period, including selected optional extras and any fees charged at inception.",
           "$ref": "common.schema.json#/$defs/money"
         },
-        "taxIncluded": { "type": "boolean" },
+        "taxIncluded": { "description": "Must be true: the annual figure includes insurance premium tax, as UK retail prices are quoted.", "const": true },
         "tax": {
           "description": "Insurance premium tax or equivalent within the annual figure.",
           "$ref": "common.schema.json#/$defs/money"
@@ -141,6 +141,7 @@
     "bundles": {
       "description": "Every bundle offered on this quote, priced for this customer. Contents are defined by the product document's bundle with the same id.",
       "type": "array",
+      "maxItems": 16,
       "items": {
         "type": "object",
         "required": ["id", "price", "selected"],
